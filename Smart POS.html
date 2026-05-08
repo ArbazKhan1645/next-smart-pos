@@ -65,7 +65,7 @@
 
     const App = () => {
       const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
-      const [stage, setStage] = React.useState('entry'); // 'entry' | 'admin' | 'pos'
+      const [stage, setStage] = React.useState('auth'); // 'auth' | 'entry' | 'admin' | 'pos'
       const [entryStep, setEntryStep] = React.useState('location');
       const [ctx, setCtx] = React.useState({ location: null, terminal: null, channel: null, posType: null, staff: null });
       const [route, setRoute] = React.useState('dashboard');
@@ -80,6 +80,10 @@
         const i = order.indexOf(entryStep);
         if (i > 0) setEntryStep(order[i - 1]);
       };
+      const handleLoginSuccess = () => {
+        setStage('entry');
+        setEntryStep('location');
+      };
 
       React.useEffect(() => {
         const handler = (e) => {
@@ -92,6 +96,9 @@
         return () => window.removeEventListener('keydown', handler);
       }, [collapsed, setTweak]);
 
+      if (stage === 'auth') {
+        return <Auth onLoginSuccess={handleLoginSuccess} />;
+      }
       if (stage === 'entry') {
         return <EntryFlow step={entryStep} ctx={ctx} setCtx={setCtx} onNext={advance} onBack={back}
           onExit={() => { setCtx({ location: DATA.locations[0], terminal: DATA.terminals[0], channel: { id: 'dine-in', name: 'Dine-in' }, posType: { id: 'restaurant', name: 'Restaurant POS' }, staff: { name: 'Maya Chen', initials: 'MC' } }); setStage('admin'); }} />;
@@ -126,7 +133,7 @@
               <span className="chip">Authentication & Onboarding flow</span>
             </div>
             <div style={{ flex: 1, overflow: 'auto' }}>
-              <Auth />
+              <Auth onLoginSuccess={handleLoginSuccess} />
             </div>
             <TweaksPanel title="Tweaks">
               <TweakSection title="Layout">

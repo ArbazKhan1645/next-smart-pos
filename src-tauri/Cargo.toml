@@ -1,0 +1,33 @@
+[package]
+name = "smart-pos"
+version = "1.0.0"
+description = "Smart POS — Enterprise Point of Sale Desktop Application"
+authors = ["Smart POS Team"]
+license = "MIT"
+repository = "https://github.com/ArbazKhan1645/next-smart-pos"
+edition = "2021"
+rust-version = "1.77.2"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+name = "app_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2.6.1", features = [] }
+
+[dependencies]
+serde_json = "1.0"
+serde = { version = "1.0", features = ["derive"] }
+log = "0.4"
+tauri = { version = "2.11.1", features = [] }
+tauri-plugin-log = "2"
+
+# ── Performance: optimize release builds ──
+[profile.release]
+panic = "abort"       # Strip panic formatting for smaller binary
+codegen-units = 1     # Optimize across all crates for smaller, faster code
+lto = true            # Link-time optimization
+opt-level = "s"       # Optimize for binary size (good for POS/low-end PCs)
+strip = true          # Strip debug symbols

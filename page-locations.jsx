@@ -1,6 +1,14 @@
 // Locations / Terminals / Staff
 const Locations = () => {
   const [tab, setTab] = React.useState('locations');
+  const [locations, setLocations] = React.useState([...DATA.locations]);
+  const [drawerOpen, setDrawerOpen] = React.useState(false);
+
+  const addLocation = (location) => {
+    setLocations(prev => [...prev, location]);
+    setDrawerOpen(false);
+  };
+
   return (
     <div>
       <div className="page-header">
@@ -9,13 +17,13 @@ const Locations = () => {
           <p className="page-sub">Locations, terminals, staff and printers across the Northwind network.</p>
         </div>
         <div style={{ display: 'flex', gap: 6 }}>
-          <button className="btn"><I.Download size={12}/> Export</button>
-          <button className="btn btn-primary"><I.Plus size={12}/> Add location</button>
+          <button className="btn"><I.Download size={12} /> Export</button>
+          <button className="btn btn-primary" onClick={() => setDrawerOpen(true)}><I.Plus size={12} /> Add location</button>
         </div>
       </div>
       <div className="page-tabs">
         {[
-          { id: 'locations', label: 'Locations', count: DATA.locations.length },
+          { id: 'locations', label: 'Locations', count: locations.length },
           { id: 'terminals', label: 'Terminals', count: DATA.terminals.length },
           { id: 'staff', label: 'Staff', count: DATA.staff.length },
           { id: 'printers', label: 'Printers', count: 18 },
@@ -26,26 +34,27 @@ const Locations = () => {
           </div>
         ))}
       </div>
-      {tab === 'locations' && <LocationsView/>}
-      {tab === 'terminals' && <TerminalsView/>}
-      {tab === 'staff' && <StaffView/>}
-      {tab === 'printers' && <PrintersView/>}
-      {tab === 'channels' && <ChannelsView/>}
+      {tab === 'locations' && <LocationsView locations={locations} />}
+      {tab === 'terminals' && <TerminalsView />}
+      {tab === 'staff' && <StaffView />}
+      {tab === 'printers' && <PrintersView />}
+      {tab === 'channels' && <ChannelsView />}
+      {drawerOpen && <NewLocationDrawer onClose={() => setDrawerOpen(false)} onCreate={addLocation} />}
     </div>
   );
 };
 
-const LocationsView = () => {
+const LocationsView = ({ locations }) => {
   const [view, setView] = React.useState('list');
   const fmtMoney = (n) => '$' + n.toLocaleString('en-US');
   return (
     <>
       <div className="toolbar">
-        <div className="toolbar-search"><I.Search size={12}/><input placeholder="Search locations…"/></div>
+        <div className="toolbar-search"><I.Search size={12} /><input placeholder="Search locations…" /></div>
         <button className="btn btn-sm">Region: All</button>
         <button className="btn btn-sm">Status: All</button>
         <button className="btn btn-sm">Type: All</button>
-        <div style={{ flex: 1 }}/>
+        <div style={{ flex: 1 }} />
         <div style={{ display: 'flex', border: '1px solid var(--border)', borderRadius: 4, overflow: 'hidden' }}>
           <button className={'btn btn-sm' + (view === 'list' ? '' : ' btn-ghost')} onClick={() => setView('list')} style={{ border: 'none', borderRadius: 0 }}>List</button>
           <button className={'btn btn-sm' + (view === 'grid' ? '' : ' btn-ghost')} onClick={() => setView('grid')} style={{ border: 'none', borderRadius: 0 }}>Grid</button>
@@ -63,7 +72,7 @@ const LocationsView = () => {
               </tr>
             </thead>
             <tbody>
-              {DATA.locations.map(l => (
+              {locations.map(l => (
                 <tr key={l.id}>
                   <td>
                     <div style={{ fontWeight: 500 }}>{l.name}</div>
@@ -72,10 +81,10 @@ const LocationsView = () => {
                   <td style={{ fontFamily: 'var(--font-mono)', color: 'var(--muted)', fontSize: 11 }}>{l.code}</td>
                   <td>{l.type}</td>
                   <td>
-                    {l.status === 'open' && <span className="chip chip-accent"><span className="dot"/>Open</span>}
-                    {l.status === 'closed' && <span className="chip"><span className="dot"/>Closed</span>}
-                    {l.status === 'syncing' && <span className="chip chip-warn"><span className="dot"/>Syncing</span>}
-                    {l.status === 'maintenance' && <span className="chip chip-danger"><span className="dot"/>Maintenance</span>}
+                    {l.status === 'open' && <span className="chip chip-accent"><span className="dot" />Open</span>}
+                    {l.status === 'closed' && <span className="chip"><span className="dot" />Closed</span>}
+                    {l.status === 'syncing' && <span className="chip chip-warn"><span className="dot" />Syncing</span>}
+                    {l.status === 'maintenance' && <span className="chip chip-danger"><span className="dot" />Maintenance</span>}
                   </td>
                   <td className="num">{l.terminals}</td>
                   <td className="num">{l.staff}</td>
@@ -86,7 +95,7 @@ const LocationsView = () => {
                       {l.channels.length > 2 && <span className="chip" style={{ fontSize: 10 }}>+{l.channels.length - 2}</span>}
                     </div>
                   </td>
-                  <td className="actions-col"><button className="btn btn-ghost btn-icon btn-sm"><I.More size={12}/></button></td>
+                  <td className="actions-col"><button className="btn btn-ghost btn-icon btn-sm"><I.More size={12} /></button></td>
                 </tr>
               ))}
             </tbody>
@@ -95,7 +104,7 @@ const LocationsView = () => {
       )}
       {view === 'grid' && (
         <div style={{ padding: 16, display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 12 }}>
-          {DATA.locations.map(l => (
+          {locations.map(l => (
             <div key={l.id} className="card">
               <div style={{ height: 90, background: 'linear-gradient(135deg, oklch(0.95 0.02 145), oklch(0.92 0.04 145))', position: 'relative' }}>
                 <div style={{ position: 'absolute', top: 8, left: 10, fontSize: 10, fontFamily: 'var(--font-mono)', color: 'var(--muted)' }}>{l.code}</div>
@@ -105,7 +114,7 @@ const LocationsView = () => {
                   {l.status === 'syncing' && <span className="chip chip-warn" style={{ fontSize: 10 }}>Sync</span>}
                   {l.status === 'maintenance' && <span className="chip chip-danger" style={{ fontSize: 10 }}>Maint.</span>}
                 </div>
-                <I.Building size={32} style={{ position: 'absolute', bottom: 10, left: 10, color: 'oklch(0.55 0.10 145)', opacity: 0.4 }}/>
+                <I.Building size={32} style={{ position: 'absolute', bottom: 10, left: 10, color: 'oklch(0.55 0.10 145)', opacity: 0.4 }} />
               </div>
               <div style={{ padding: 12 }}>
                 <div style={{ fontWeight: 500 }}>{l.name}</div>
@@ -126,32 +135,111 @@ const LocationsView = () => {
             {/* Stylized US map dots */}
             <svg viewBox="0 0 800 400" style={{ width: '100%', height: '100%' }}>
               <defs><pattern id="g" width="20" height="20" patternUnits="userSpaceOnUse">
-                <path d="M 20 0 L 0 0 0 20" fill="none" stroke="var(--border)" strokeWidth="0.5"/>
+                <path d="M 20 0 L 0 0 0 20" fill="none" stroke="var(--border)" strokeWidth="0.5" />
               </pattern></defs>
-              <rect width="800" height="400" fill="url(#g)"/>
+              <rect width="800" height="400" fill="url(#g)" />
               <path d="M 100 120 Q 200 80 350 110 Q 500 140 650 100 L 700 200 Q 600 280 500 260 Q 350 280 200 250 Q 100 220 100 120 Z"
-                fill="oklch(0.94 0.02 145)" stroke="var(--border-strong)" strokeWidth="1"/>
-              {DATA.locations.map((l, i) => {
+                fill="oklch(0.94 0.02 145)" stroke="var(--border-strong)" strokeWidth="1" />
+              {locations.map((l, i) => {
                 const x = 120 + (i % 6) * 110 + Math.sin(i) * 20;
                 const y = 130 + Math.floor(i / 6) * 80 + Math.cos(i) * 15;
                 return (
                   <g key={l.id} transform={`translate(${x}, ${y})`}>
-                    <circle r="14" fill="var(--accent)" opacity="0.15"/>
-                    <circle r="6" fill={l.status === 'open' ? 'var(--accent)' : l.status === 'syncing' ? 'oklch(0.72 0.16 70)' : 'var(--danger)'} stroke="white" strokeWidth="2"/>
+                    <circle r="14" fill="var(--accent)" opacity="0.15" />
+                    <circle r="6" fill={l.status === 'open' ? 'var(--accent)' : l.status === 'syncing' ? 'oklch(0.72 0.16 70)' : 'var(--danger)'} stroke="white" strokeWidth="2" />
                     <text y="-10" fontSize="9" textAnchor="middle" fill="var(--ink)" fontFamily="var(--font-mono)">{l.code}</text>
                   </g>
                 );
               })}
             </svg>
             <div style={{ position: 'absolute', top: 12, left: 12, background: 'var(--surface)', padding: '6px 10px', border: '1px solid var(--border)', borderRadius: 4, fontSize: 11, display: 'flex', gap: 12 }}>
-              <span><span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: 4, background: 'var(--accent)', marginRight: 4 }}/>Open · 9</span>
-              <span><span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: 4, background: 'oklch(0.72 0.16 70)', marginRight: 4 }}/>Syncing · 1</span>
-              <span><span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: 4, background: 'var(--danger)', marginRight: 4 }}/>Issue · 2</span>
+              <span><span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: 4, background: 'var(--accent)', marginRight: 4 }} />Open · 9</span>
+              <span><span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: 4, background: 'oklch(0.72 0.16 70)', marginRight: 4 }} />Syncing · 1</span>
+              <span><span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: 4, background: 'var(--danger)', marginRight: 4 }} />Issue · 2</span>
             </div>
           </div>
         </div>
       )}
     </>
+  );
+};
+
+const NewLocationDrawer = ({ onClose, onCreate }) => {
+  const [name, setName] = React.useState('');
+  const [email, setEmail] = React.useState('');
+  const [phone, setPhone] = React.useState('');
+  const [website, setWebsite] = React.useState('');
+  const [logo, setLogo] = React.useState('');
+  const [address, setAddress] = React.useState('');
+  const [country, setCountry] = React.useState('United States');
+  const [type, setType] = React.useState('Restaurant');
+
+  const createLocation = () => {
+    if (!name.trim()) return;
+    const code = name.trim().split(' ').map(w => w[0]?.toUpperCase()).join('').slice(0, 3) + '-' + Math.floor(10 + Math.random() * 90);
+    const id = 'L-' + String(1000 + Math.floor(Math.random() * 9000));
+    const city = address.split(',')[0] || name;
+    onCreate({
+      id,
+      name,
+      code,
+      city,
+      status: 'open',
+      terminals: 1,
+      staff: 3,
+      sales: 0,
+      channels: ['Dine-in', 'Takeaway'],
+      type,
+      email,
+      phone,
+      website,
+      logo,
+      address,
+      country,
+    });
+  };
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(15,15,15,0.32)', zIndex: 90, display: 'flex', justifyContent: 'flex-end', padding: 20 }}>
+      <div style={{ width: 440, maxWidth: '100%', height: '100%', background: 'var(--surface)', boxShadow: '0 0 0 1px rgba(15,15,15,0.08)', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 24px', borderBottom: '1px solid var(--border)' }}>
+          <div>
+            <div style={{ fontSize: 20, fontWeight: 600 }}>Add new location</div>
+            <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 4 }}>Add a new location to your workspace.</div>
+          </div>
+          <button className="btn btn-ghost btn-icon" onClick={onClose}><I.X size={14} /></button>
+        </div>
+        <div style={{ flex: 1, overflow: 'auto', padding: 24, display: 'grid', gap: 12 }}>
+          <Field label="Location name"><input className="input" value={name} onChange={e => setName(e.target.value)} placeholder="e.g. West Village" /></Field>
+          <Field label="Location email"><input className="input" value={email} onChange={e => setEmail(e.target.value)} placeholder="support@northwind.co" /></Field>
+          <Field label="Phone"><input className="input" value={phone} onChange={e => setPhone(e.target.value)} placeholder="+1 212-555-0184" /></Field>
+          <Field label="Website"><input className="input" value={website} onChange={e => setWebsite(e.target.value)} placeholder="https://northwind.co" /></Field>
+          <Field label="Logo image"><input className="input" value={logo} onChange={e => setLogo(e.target.value)} placeholder="Image URL" /></Field>
+          <Field label="Address"><input className="input" value={address} onChange={e => setAddress(e.target.value)} placeholder="123 Spring St, New York, NY 10012" /></Field>
+          <Field label="Country">
+            <select className="input" value={country} onChange={e => setCountry(e.target.value)}>
+              <option>United States</option>
+              <option>Canada</option>
+              <option>United Kingdom</option>
+              <option>Australia</option>
+              <option>Other</option>
+            </select>
+          </Field>
+          <Field label="Location type">
+            <select className="input" value={type} onChange={e => setType(e.target.value)}>
+              <option>Restaurant</option>
+              <option>Cafe</option>
+              <option>Retail</option>
+              <option>QSR</option>
+            </select>
+          </Field>
+        </div>
+        <div style={{ padding: '16px 24px 24px', borderTop: '1px solid var(--border)', display: 'flex', gap: 10 }}>
+          <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
+          <button className="btn btn-primary" style={{ flex: 1 }} onClick={createLocation} disabled={!name.trim()}>Create location</button>
+        </div>
+      </div>
+    </div>
   );
 };
 
@@ -173,8 +261,10 @@ const TerminalsView = () => (
               {t.battery == null ? <span style={{ color: 'var(--muted-2)' }}>—</span> : (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <div style={{ width: 36, height: 6, background: 'var(--surface-2)', borderRadius: 3, overflow: 'hidden' }}>
-                    <div style={{ width: t.battery + '%', height: '100%',
-                      background: t.battery < 20 ? 'var(--danger)' : t.battery < 50 ? 'oklch(0.72 0.16 70)' : 'var(--accent)' }}/>
+                    <div style={{
+                      width: t.battery + '%', height: '100%',
+                      background: t.battery < 20 ? 'var(--danger)' : t.battery < 50 ? 'oklch(0.72 0.16 70)' : 'var(--accent)'
+                    }} />
                   </div>
                   <span className="num" style={{ fontSize: 11 }}>{t.battery}%</span>
                 </div>
@@ -182,11 +272,11 @@ const TerminalsView = () => (
             </td>
             <td style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--muted)' }}>{t.printer}</td>
             <td>
-              {t.status === 'online' && <span className="chip chip-accent"><I.Wifi size={10}/>Online</span>}
-              {t.status === 'syncing' && <span className="chip chip-warn"><I.Refresh size={10}/>Syncing</span>}
-              {t.status === 'offline' && <span className="chip chip-danger"><I.WifiOff size={10}/>Offline</span>}
+              {t.status === 'online' && <span className="chip chip-accent"><I.Wifi size={10} />Online</span>}
+              {t.status === 'syncing' && <span className="chip chip-warn"><I.Refresh size={10} />Syncing</span>}
+              {t.status === 'offline' && <span className="chip chip-danger"><I.WifiOff size={10} />Offline</span>}
             </td>
-            <td className="actions-col"><button className="btn btn-ghost btn-icon btn-sm"><I.More size={12}/></button></td>
+            <td className="actions-col"><button className="btn btn-ghost btn-icon btn-sm"><I.More size={12} /></button></td>
           </tr>
         ))}
       </tbody>
@@ -198,17 +288,17 @@ const StaffView = () => {
   const [role, setRole] = React.useState('All');
   const filtered = role === 'All' ? DATA.staff : DATA.staff.filter(s => s.role === role);
   const fmtAgo = (m) => m == null ? '—' : m < 60 ? m + 'm' : Math.floor(m / 60) + 'h';
-  const roles = ['All','Admin','Manager','Cashier','Kitchen','Waiter','Support'];
+  const roles = ['All', 'Admin', 'Manager', 'Cashier', 'Kitchen', 'Waiter', 'Support'];
   return (
     <>
       <div className="toolbar">
-        <div className="toolbar-search"><I.Search size={12}/><input placeholder="Search staff…"/></div>
+        <div className="toolbar-search"><I.Search size={12} /><input placeholder="Search staff…" /></div>
         {roles.map(r => (
           <button key={r} className="btn btn-sm" style={role === r ? { background: 'var(--ink)', color: '#fff', borderColor: 'var(--ink)' } : {}}
             onClick={() => setRole(r)}>{r}</button>
         ))}
-        <div style={{ flex: 1 }}/>
-        <button className="btn btn-sm btn-primary"><I.Plus size={11}/> Invite staff</button>
+        <div style={{ flex: 1 }} />
+        <button className="btn btn-sm btn-primary"><I.Plus size={11} /> Invite staff</button>
       </div>
       <div style={{ overflowX: 'auto' }}>
         <table className="table">
@@ -233,15 +323,15 @@ const StaffView = () => {
                 <td>{s.loc}</td>
                 <td>
                   {s.clockedIn
-                    ? <span className="chip chip-accent"><span className="dot"/>Clocked in</span>
-                    : <span className="chip"><span className="dot"/>Off</span>}
+                    ? <span className="chip chip-accent"><span className="dot" />Clocked in</span>
+                    : <span className="chip"><span className="dot" />Off</span>}
                 </td>
                 <td style={{ color: 'var(--muted)' }}>{s.lastSale != null ? fmtAgo(s.lastSale) + ' ago' : '—'}</td>
                 <td>
                   {s.status === 'active' && <span style={{ color: 'var(--accent)', fontSize: 11, fontWeight: 500 }}>Active</span>}
                   {s.status === 'invited' && <span style={{ color: 'oklch(0.55 0.14 70)', fontSize: 11, fontWeight: 500 }}>Invited</span>}
                 </td>
-                <td className="actions-col"><button className="btn btn-ghost btn-icon btn-sm"><I.More size={12}/></button></td>
+                <td className="actions-col"><button className="btn btn-ghost btn-icon btn-sm"><I.More size={12} /></button></td>
               </tr>
             ))}
           </tbody>
@@ -264,15 +354,15 @@ const PrintersView = () => (
       <div key={i} className="card" style={{ padding: 14 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
           <div style={{ width: 32, height: 32, background: 'var(--surface-2)', borderRadius: 6, display: 'grid', placeItems: 'center' }}>
-            <I.Printer size={16}/>
+            <I.Printer size={16} />
           </div>
           <div style={{ flex: 1 }}>
             <div style={{ fontWeight: 500 }}>{p.name}</div>
             <div style={{ fontSize: 11, color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>{p.id}</div>
           </div>
-          {p.status === 'online' && <span className="chip chip-accent"><span className="dot"/>OK</span>}
-          {p.status === 'low-paper' && <span className="chip chip-warn"><span className="dot"/>Low paper</span>}
-          {p.status === 'offline' && <span className="chip chip-danger"><span className="dot"/>Offline</span>}
+          {p.status === 'online' && <span className="chip chip-accent"><span className="dot" />OK</span>}
+          {p.status === 'low-paper' && <span className="chip chip-warn"><span className="dot" />Low paper</span>}
+          {p.status === 'offline' && <span className="chip chip-danger"><span className="dot" />Offline</span>}
         </div>
         <div style={{ display: 'flex', gap: 10, fontSize: 11 }}>
           <div><div style={{ color: 'var(--muted)' }}>Location</div><div>{p.loc}</div></div>
@@ -289,7 +379,7 @@ const ChannelsView = () => (
     {DATA.channels.map(c => (
       <div key={c.name} className="card" style={{ padding: 14 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ width: 28, height: 28, background: c.color, borderRadius: 6, opacity: 0.18 }}/>
+          <span style={{ width: 28, height: 28, background: c.color, borderRadius: 6, opacity: 0.18 }} />
           <div>
             <div style={{ fontWeight: 500 }}>{c.name}</div>
             <div style={{ fontSize: 11, color: 'var(--muted)' }}>{c.value}% of orders</div>
