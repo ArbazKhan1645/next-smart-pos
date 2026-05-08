@@ -65,9 +65,9 @@
 
     const App = () => {
       const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
-      const [stage, setStage] = React.useState('auth'); // 'auth' | 'entry' | 'admin' | 'pos'
-      const [entryStep, setEntryStep] = React.useState('location');
-      const [ctx, setCtx] = React.useState({ location: null, terminal: null, channel: null, posType: null, staff: null });
+      const [stage, setStage] = React.useState('entry'); // 'auth' | 'entry' | 'admin' | 'pos'
+      const [entryStep, setEntryStep] = React.useState('merchant-login');
+      const [ctx, setCtx] = React.useState({ merchant: null, location: null, terminal: null, channel: null, posType: null, staff: null });
       const [route, setRoute] = React.useState('dashboard');
       const collapsed = t.sidebarCollapsed;
 
@@ -76,13 +76,9 @@
         else setEntryStep(next);
       };
       const back = () => {
-        const order = ['location', 'terminal', 'channel', 'pos-type', 'pin'];
+        const order = ['merchant-login', 'otp', 'location', 'terminal', 'channel', 'pos-type', 'pin'];
         const i = order.indexOf(entryStep);
         if (i > 0) setEntryStep(order[i - 1]);
-      };
-      const handleLoginSuccess = () => {
-        setStage('entry');
-        setEntryStep('location');
       };
 
       React.useEffect(() => {
@@ -101,7 +97,7 @@
       }
       if (stage === 'entry') {
         return <EntryFlow step={entryStep} ctx={ctx} setCtx={setCtx} onNext={advance} onBack={back}
-          onExit={() => { setCtx({ location: DATA.locations[0], terminal: DATA.terminals[0], channel: { id: 'dine-in', name: 'Dine-in' }, posType: { id: 'restaurant', name: 'Restaurant POS' }, staff: { name: 'Maya Chen', initials: 'MC' } }); setStage('admin'); }} />;
+          onExit={() => { setCtx({ merchant: DATA.merchants[0], location: DATA.locations[0], terminal: DATA.terminals[0], channel: { id: 'dine-in', name: 'Dine-in' }, posType: { id: 'restaurant', name: 'Restaurant POS' }, staff: { name: 'Maya Chen', initials: 'MC' } }); setStage('admin'); }} />;
       }
       if (stage === 'pos') {
         return <POSRegister ctx={ctx} onExit={() => setStage('admin')} />;

@@ -1,5 +1,6 @@
-﻿import React from 'react';
-// Reports + Auth/Onboarding
+import React from 'react';
+
+// Reports Component
 const Reports = () => {
   const [tab, setTab] = React.useState('sales');
   return (
@@ -10,10 +11,10 @@ const Reports = () => {
           <p className="page-sub">Enterprise analytics across sales, products, staff, taxes and inventory.</p>
         </div>
         <div style={{ display: 'flex', gap: 6 }}>
-          <button className="btn"><I.Calendar size={12} /> Apr 24 – May 7</button>
-          <button className="btn"><I.Filter size={12} /> Filters</button>
-          <button className="btn"><I.Download size={12} /> Export CSV</button>
-          <button className="btn btn-primary"><I.Plus size={12} /> Schedule report</button>
+          <button className="btn"><window.I.Calendar size={12} /> Apr 24 – May 7</button>
+          <button className="btn"><window.I.Filter size={12} /> Filters</button>
+          <button className="btn"><window.I.Download size={12} /> Export CSV</button>
+          <button className="btn btn-primary"><window.I.Plus size={12} /> Schedule report</button>
         </div>
       </div>
       <div className="page-tabs">
@@ -42,7 +43,7 @@ const Reports = () => {
         <div className="card">
           <div className="card-head">
             <div className="card-title">Sales by location</div>
-            <button className="btn btn-sm btn-ghost" style={{ marginLeft: 'auto' }}><I.Download size={11} /></button>
+            <button className="btn btn-sm btn-ghost" style={{ marginLeft: 'auto' }}><window.I.Download size={11} /></button>
           </div>
           <div style={{ overflowX: 'auto' }}>
             <table className="table">
@@ -50,7 +51,7 @@ const Reports = () => {
                 <tr><th>Location</th><th className="num">Orders</th><th className="num">Net sales</th><th className="num">Avg. ticket</th><th className="num">Tax</th><th className="num">Tips</th><th className="num">Refunds</th><th>Trend</th></tr>
               </thead>
               <tbody>
-                {DATA.locations.filter(l => l.sales > 0).slice(0, 10).map((l, i) => (
+                {window.DATA.locations.filter(l => l.sales > 0).slice(0, 10).map((l, i) => (
                   <tr key={l.id}>
                     <td>
                       <div style={{ fontWeight: 500 }}>{l.name}</div>
@@ -63,7 +64,7 @@ const Reports = () => {
                     <td className="num" style={{ color: 'var(--muted)' }}>${Math.floor(l.sales * 0.16).toLocaleString()}</td>
                     <td className="num" style={{ color: 'var(--danger)' }}>${Math.floor(l.sales * 0.007).toLocaleString()}</td>
                     <td>
-                      <Spark data={[10, 14, 12, 18, 16, 20, 22, 21, 24, 26, 23, 28].map(v => v + i)} w={80} h={20} />
+                      <window.Spark data={[10, 14, 12, 18, 16, 20, 22, 21, 24, 26, 23, 28].map(v => v + i)} w={80} h={20} />
                     </td>
                   </tr>
                 ))}
@@ -75,7 +76,7 @@ const Reports = () => {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
           <div className="card">
             <div className="card-head"><div className="card-title">Net sales · trend</div></div>
-            <div style={{ padding: 14, height: 220 }}><RevenueChart /></div>
+            <div style={{ padding: 14, height: 220 }}><window.RevenueChart /></div>
           </div>
           <div className="card">
             <div className="card-head"><div className="card-title">Tax breakdown</div></div>
@@ -104,6 +105,8 @@ const Reports = () => {
 // Auth & Onboarding
 const Auth = ({ onLoginSuccess }) => {
   const [step, setStep] = React.useState('login');
+  const [merchant, setMerchant] = React.useState(null);
+
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'grid', gridTemplateColumns: '1fr 480px' }}>
       <div style={{ background: 'linear-gradient(135deg, oklch(0.97 0.01 145), oklch(0.93 0.04 145))', padding: 40, display: 'flex', flexDirection: 'column' }}>
@@ -132,11 +135,10 @@ const Auth = ({ onLoginSuccess }) => {
         </div>
       </div>
       <div style={{ background: 'var(--surface)', padding: 40, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-        {step === 'login' && <LoginPanel onForgot={() => setStep('forgot')} onSignup={() => setStep('signup')} onOTP={() => setStep('otp')} />}
+        {step === 'login' && <LoginPanel onForgot={() => setStep('forgot')} onSignup={() => setStep('signup')} onOTP={(m) => { setMerchant(m); setStep('otp'); }} />}
         {step === 'signup' && <SignupPanel onBack={() => setStep('login')} onNext={() => setStep('onboard')} />}
         {step === 'forgot' && <ForgotPanel onBack={() => setStep('login')} />}
-        {step === 'otp' && <OTPPanel onBack={() => setStep('login')} onDone={onLoginSuccess} />}
-        {step === 'onboard' && <OnboardPanel onBack={() => setStep('login')} />}
+        {step === 'otp' && <OTPPanel merchant={merchant} onBack={() => setStep('login')} onDone={() => onLoginSuccess(merchant)} />}
       </div>
     </div>
   );
@@ -144,69 +146,99 @@ const Auth = ({ onLoginSuccess }) => {
 
 const inputCls = { width: '100%', padding: '8px 10px', fontSize: 13, fontFamily: 'inherit', border: '1px solid var(--border)', borderRadius: 5, background: 'var(--surface)', outline: 'none' };
 
-const LoginPanel = ({ onForgot, onSignup, onOTP }) => (
-  <div style={{ maxWidth: 360, margin: '0 auto', width: '100%' }}>
-    <div style={{ fontSize: 22, fontWeight: 600, letterSpacing: '-0.02em', marginBottom: 4 }}>Welcome back</div>
-    <div style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 24 }}>Sign in to your Smart POS workspace</div>
-    <Field label="Email"><input style={inputCls} placeholder="you@company.com" defaultValue="maya@northwind.co" /></Field>
-    <div style={{ height: 12 }} />
-    <Field label="Password">
-      <div style={{ position: 'relative' }}>
-        <input style={inputCls} type="password" placeholder="••••••••" defaultValue="••••••••••" />
-        <button className="btn btn-ghost btn-icon btn-sm" style={{ position: 'absolute', right: 4, top: 4 }}><I.Eye size={12} /></button>
+const LoginPanel = ({ onForgot, onSignup, onOTP }) => {
+  const [email, setEmail] = React.useState('maya@northwind.co');
+  const [password, setPassword] = React.useState('password123');
+  const [error, setError] = React.useState('');
+
+  const handleContinue = () => {
+    const merchant = window.DATA.merchants.find(m => m.email === email && m.password === password);
+    if (merchant) {
+      setError('');
+      onOTP(merchant);
+    } else {
+      setError('Invalid email or password. Use: maya@northwind.co / password123');
+    }
+  };
+
+  return (
+    <div style={{ maxWidth: 360, margin: '0 auto', width: '100%' }}>
+      <div style={{ fontSize: 22, fontWeight: 600, letterSpacing: '-0.02em', marginBottom: 4 }}>Welcome back</div>
+      <div style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 24 }}>Sign in to your Smart POS workspace</div>
+      <window.Field label="Email"><input style={inputCls} placeholder="you@company.com" value={email} onChange={e => setEmail(e.target.value)} /></window.Field>
+      <div style={{ height: 12 }} />
+      <window.Field label="Password">
+        <div style={{ position: 'relative' }}>
+          <input style={inputCls} type="password" placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} />
+          <button className="btn btn-ghost btn-icon btn-sm" style={{ position: 'absolute', right: 4, top: 4 }}><window.I.Eye size={12} /></button>
+        </div>
+      </window.Field>
+      {error && <div style={{ color: 'var(--danger)', fontSize: 12, marginTop: 8 }}>{error}</div>}
+      <div style={{ display: 'flex', alignItems: 'center', marginTop: 10 }}>
+        <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12 }}>
+          <window.Cbx checked={true} /> Remember this device
+        </label>
+        <button className="btn btn-ghost btn-sm" style={{ marginLeft: 'auto' }} onClick={onForgot}>Forgot password</button>
       </div>
-    </Field>
-    <div style={{ display: 'flex', alignItems: 'center', marginTop: 10 }}>
-      <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12 }}>
-        <Cbx checked={true} /> Remember this device
-      </label>
-      <button className="btn btn-ghost btn-sm" style={{ marginLeft: 'auto' }} onClick={onForgot}>Forgot password</button>
+      <button className="btn btn-primary" style={{ width: '100%', marginTop: 16, height: 36, justifyContent: 'center' }} onClick={handleContinue}>Continue with email</button>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '16px 0', color: 'var(--muted)', fontSize: 11 }}>
+        <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />OR<div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+        <button className="btn">Google</button>
+        <button className="btn">SSO · Okta</button>
+      </div>
+      <div style={{ marginTop: 24, fontSize: 12, color: 'var(--muted)', textAlign: 'center' }}>
+        New to Smart POS? <a href="#" onClick={(e) => { e.preventDefault(); onSignup(); }} style={{ color: 'var(--ink)', fontWeight: 500 }}>Create account</a>
+      </div>
     </div>
-    <button className="btn btn-primary" style={{ width: '100%', marginTop: 16, height: 36, justifyContent: 'center' }} onClick={onOTP}>Continue with email</button>
-    <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '16px 0', color: 'var(--muted)', fontSize: 11 }}>
-      <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />OR<div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
-    </div>
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
-      <button className="btn">Google</button>
-      <button className="btn">SSO · Okta</button>
-    </div>
-    <div style={{ marginTop: 24, fontSize: 12, color: 'var(--muted)', textAlign: 'center' }}>
-      New to Smart POS? <a href="#" onClick={(e) => { e.preventDefault(); onSignup(); }} style={{ color: 'var(--ink)', fontWeight: 500 }}>Create account</a>
-    </div>
-  </div>
-);
+  );
+};
+
 const SignupPanel = ({ onBack, onNext }) => (
   <div style={{ maxWidth: 360, margin: '0 auto', width: '100%' }}>
     <button className="btn btn-ghost btn-sm" style={{ marginBottom: 16 }} onClick={onBack}>← Back</button>
     <div style={{ fontSize: 22, fontWeight: 600, letterSpacing: '-0.02em', marginBottom: 4 }}>Create workspace</div>
     <div style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 24 }}>Step 1 of 3 — your business</div>
-    <Field label="Workspace name"><input style={inputCls} placeholder="e.g. Northwind Hospitality" /></Field><div style={{ height: 12 }} />
-    <Field label="Business type"><select style={inputCls}><option>Restaurant / QSR</option><option>Cafe / Coffee</option><option>Retail</option><option>Mixed</option></select></Field><div style={{ height: 12 }} />
+    <window.Field label="Workspace name"><input style={inputCls} placeholder="e.g. Northwind Hospitality" /></window.Field><div style={{ height: 12 }} />
+    <window.Field label="Business type"><select style={inputCls}><option>Restaurant / QSR</option><option>Cafe / Coffee</option><option>Retail</option><option>Mixed</option></select></window.Field><div style={{ height: 12 }} />
     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-      <Field label="Country"><select style={inputCls}><option>United States</option></select></Field>
-      <Field label="Currency"><select style={inputCls}><option>USD ($)</option></select></Field>
+      <window.Field label="Country"><select style={inputCls}><option>United States</option></select></window.Field>
+      <window.Field label="Currency"><select style={inputCls}><option>USD ($)</option></select></window.Field>
     </div><div style={{ height: 12 }} />
-    <Field label="Email"><input style={inputCls} placeholder="you@company.com" /></Field><div style={{ height: 12 }} />
-    <Field label="Password"><input style={inputCls} type="password" placeholder="••••••••" /></Field>
+    <window.Field label="Email"><input style={inputCls} placeholder="you@company.com" /></window.Field><div style={{ height: 12 }} />
+    <window.Field label="Password"><input style={inputCls} type="password" placeholder="••••••••" /></window.Field>
     <button className="btn btn-primary" style={{ width: '100%', marginTop: 18, height: 36, justifyContent: 'center' }} onClick={onNext}>Continue →</button>
   </div>
 );
+
 const ForgotPanel = ({ onBack }) => (
   <div style={{ maxWidth: 360, margin: '0 auto', width: '100%' }}>
     <button className="btn btn-ghost btn-sm" style={{ marginBottom: 16 }} onClick={onBack}>← Back</button>
     <div style={{ fontSize: 22, fontWeight: 600, letterSpacing: '-0.02em', marginBottom: 4 }}>Reset your password</div>
     <div style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 24 }}>We'll email you a reset link.</div>
-    <Field label="Email"><input style={inputCls} placeholder="you@company.com" /></Field>
+    <window.Field label="Email"><input style={inputCls} placeholder="you@company.com" /></window.Field>
     <button className="btn btn-primary" style={{ width: '100%', marginTop: 16, height: 36, justifyContent: 'center' }}>Send reset link</button>
   </div>
 );
-const OTPPanel = ({ onBack, onDone }) => {
+
+const OTPPanel = ({ merchant, onBack, onDone }) => {
   const [code, setCode] = React.useState(['1', '7', '3', '', '', '']);
+  const [error, setError] = React.useState('');
+
+  const handleVerify = () => {
+    if (code.every(c => c.trim() !== '')) {
+      onDone();
+    } else {
+      setError('Please enter all 6 digits of the verification code.');
+    }
+  };
+
   return (
     <div style={{ maxWidth: 360, margin: '0 auto', width: '100%' }}>
       <button className="btn btn-ghost btn-sm" style={{ marginBottom: 16 }} onClick={onBack}>← Back</button>
       <div style={{ fontSize: 22, fontWeight: 600, letterSpacing: '-0.02em', marginBottom: 4 }}>Verify your device</div>
-      <div style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 24 }}>Enter the 6-digit code sent to <strong>maya@northwind.co</strong></div>
+      <div style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 24 }}>Enter the 6-digit code sent to <strong>{merchant?.email}</strong></div>
       <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
         {code.map((c, i) => (
           <input key={i} value={c} maxLength={1}
@@ -217,45 +249,11 @@ const OTPPanel = ({ onBack, onDone }) => {
             }} />
         ))}
       </div>
-      <button className="btn btn-primary" style={{ width: '100%', marginTop: 24, height: 36, justifyContent: 'center' }} onClick={onDone}>Verify & continue</button>
+      {error && <div style={{ color: 'var(--danger)', fontSize: 12, marginTop: 12, textAlign: 'center' }}>{error}</div>}
+      <button className="btn btn-primary" style={{ width: '100%', marginTop: 24, height: 36, justifyContent: 'center' }} onClick={handleVerify}>Verify & continue</button>
       <div style={{ marginTop: 16, fontSize: 12, color: 'var(--muted)', textAlign: 'center' }}>Didn't receive it? <a href="#" style={{ color: 'var(--ink)' }}>Resend</a> · 0:42</div>
     </div>
   );
 };
-const OnboardPanel = ({ onBack }) => {
-  const [step, setStep] = React.useState(2);
-  const steps = ['Workspace', 'First location', 'Import menu', 'Connect payments', 'Invite staff'];
-  return (
-    <div style={{ maxWidth: 400, margin: '0 auto', width: '100%' }}>
-      <div style={{ fontSize: 22, fontWeight: 600, letterSpacing: '-0.02em', marginBottom: 4 }}>Set up your first location</div>
-      <div style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 20 }}>Step {step + 1} of {steps.length}</div>
-      <div style={{ display: 'flex', gap: 6, marginBottom: 24 }}>
-        {steps.map((s, i) => (
-          <div key={i} style={{ flex: 1, height: 4, background: i <= step ? 'var(--accent)' : 'var(--surface-2)', borderRadius: 2 }} />
-        ))}
-      </div>
-      <Field label="Location name"><input style={inputCls} placeholder="Flagship — SoHo" /></Field><div style={{ height: 10 }} />
-      <Field label="Address"><input style={inputCls} placeholder="123 Spring St, New York, NY 10012" /></Field><div style={{ height: 10 }} />
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-        <Field label="Tax registration"><input style={inputCls} placeholder="Optional" /></Field>
-        <Field label="Timezone"><select style={inputCls}><option>America/New_York</option></select></Field>
-      </div>
-      <div style={{ marginTop: 16 }}>
-        <div style={{ fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 8 }}>Sales channels at this location</div>
-        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-          {['Dine-in', 'Takeaway', 'Delivery', 'QR Order', 'Drive-thru'].map(c => (
-            <span key={c} className={'chip' + (c === 'Dine-in' || c === 'Takeaway' ? ' chip-accent' : '')}>{c}</span>
-          ))}
-        </div>
-      </div>
-      <div style={{ display: 'flex', gap: 8, marginTop: 24 }}>
-        <button className="btn" style={{ flex: 1 }} onClick={onBack}>Skip for now</button>
-        <button className="btn btn-primary" style={{ flex: 1 }}>Continue →</button>
-      </div>
-    </div>
-  );
-};
-
-
 
 export { Reports, Auth };

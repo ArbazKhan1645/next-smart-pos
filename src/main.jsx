@@ -95,7 +95,7 @@ const App = () => {
   const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
   const [stage, setStage] = React.useState('auth'); // 'auth' | 'entry' | 'admin' | 'pos'
   const [entryStep, setEntryStep] = React.useState('location');
-  const [ctx, setCtx] = React.useState({ location: null, terminal: null, channel: null, posType: null, staff: null });
+  const [ctx, setCtx] = React.useState({ merchant: null, location: null, terminal: null, channel: null, posType: null, staff: null });
   const [route, setRoute] = React.useState('dashboard');
   const collapsed = t.sidebarCollapsed;
 
@@ -108,7 +108,8 @@ const App = () => {
     const i = order.indexOf(entryStep);
     if (i > 0) setEntryStep(order[i - 1]);
   };
-  const handleLoginSuccess = () => {
+  const handleLoginSuccess = (merchant) => {
+    setCtx(prev => ({ ...prev, merchant }));
     setStage('entry');
     setEntryStep('location');
   };

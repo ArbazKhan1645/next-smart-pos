@@ -1,14 +1,23 @@
-﻿import React from 'react';
+import React from 'react';
+
 // Entry flow screens: Location → Terminal → Channel → POS Type → PIN
 const EntryFlow = ({ step, ctx, setCtx, onNext, onBack, onExit }) => {
-  const [locationOptions, setLocationOptions] = React.useState(DATA.locations);
+  const filteredLocations = React.useMemo(() => {
+    return window.DATA.locations.filter(l => l.merchantId === ctx.merchant?.id);
+  }, [ctx.merchant]);
+
+  const [locationOptions, setLocationOptions] = React.useState(filteredLocations);
+
+  React.useEffect(() => {
+    setLocationOptions(filteredLocations);
+  }, [filteredLocations]);
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--bg)' }}>
       <div className="topbar" style={{ background: 'var(--surface)' }}>
         <div className="sb-logo" style={{ width: 24, height: 24 }}>S</div>
         <div style={{ fontWeight: 600, fontSize: 13 }}>Smart POS</div>
-        <span className="chip" style={{ marginLeft: 8 }}>Northwind Hospitality</span>
+        <span className="chip" style={{ marginLeft: 8 }}>{ctx.merchant?.name || 'Smart POS'}</span>
         <div className="topbar-spacer" />
         <FlowSteps step={step} />
         <div className="topbar-spacer" />
@@ -80,6 +89,7 @@ const PickLocation = ({ ctx, setCtx, onNext, locationOptions, onAddLocation }) =
     const city = newLocation.address.split(',')[1]?.trim() || newLocation.name;
     const location = {
       id,
+      merchantId: ctx.merchant?.id,
       name: newLocation.name,
       code,
       city,
@@ -106,7 +116,7 @@ const PickLocation = ({ ctx, setCtx, onNext, locationOptions, onAddLocation }) =
     <>
       <FlowHeader
         title="Select your location"
-        sub={`Maya · You have access to ${locationOptions.length} locations across 8 cities. Pick where you'll be working today.`}
+        sub={`${ctx.merchant?.name || 'User'} · You have access to ${locationOptions.length} locations. Pick where you'll be working today.`}
       />
       <div style={{ maxWidth: 1100, margin: '0 auto 18px', display: 'flex', justifyContent: 'flex-end' }}>
         <button className="btn btn-primary btn-sm" onClick={() => setDrawerOpen(true)}>Add new location</button>
@@ -132,9 +142,9 @@ const PickLocation = ({ ctx, setCtx, onNext, locationOptions, onAddLocation }) =
                   {l.status === 'syncing' && <span className="chip chip-warn" style={{ fontSize: 10 }}>Syncing</span>}
                   {l.status === 'maintenance' && <span className="chip chip-danger" style={{ fontSize: 10 }}>Maintenance</span>}
                 </div>
-                <I.Building size={36} style={{ position: 'absolute', bottom: 10, left: 10, color: 'oklch(0.55 0.10 145)', opacity: 0.4 }} />
+                <window.I.Building size={36} style={{ position: 'absolute', bottom: 10, left: 10, color: 'oklch(0.55 0.10 145)', opacity: 0.4 }} />
                 {active && <div style={{ position: 'absolute', bottom: 10, right: 10, width: 22, height: 22, borderRadius: '50%', background: 'var(--ink)', display: 'grid', placeItems: 'center' }}>
-                  <I.Check size={13} style={{ color: '#fff' }} />
+                  <window.I.Check size={13} style={{ color: '#fff' }} />
                 </div>}
               </div>
               <div style={{ padding: 12 }}>
@@ -165,13 +175,13 @@ const PickLocation = ({ ctx, setCtx, onNext, locationOptions, onAddLocation }) =
                 <div style={{ fontSize: 22, fontWeight: 600, letterSpacing: '-0.02em' }}>Add new location</div>
                 <div style={{ fontSize: 13, color: 'var(--muted)', marginTop: 4 }}>Fill in the location details and create a new site.</div>
               </div>
-              <button className="btn btn-ghost btn-icon" onClick={() => setDrawerOpen(false)}><I.X size={16} /></button>
+              <button className="btn btn-ghost btn-icon" onClick={() => setDrawerOpen(false)}><window.I.X size={16} /></button>
             </div>
             <div style={{ flex: 1, overflow: 'auto', padding: '28px' }}>
               {/* Basic Information Section */}
               <div style={{ marginBottom: 32 }}>
                 <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink)', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <I.Building size={16} />
+                  <window.I.Building size={16} />
                   Basic Information
                 </div>
                 <div style={{ display: 'grid', gap: 16 }}>
@@ -209,7 +219,7 @@ const PickLocation = ({ ctx, setCtx, onNext, locationOptions, onAddLocation }) =
               {/* Contact Information Section */}
               <div style={{ marginBottom: 32 }}>
                 <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink)', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <I.Mail size={16} />
+                  <window.I.Mail size={16} />
                   Contact Information
                 </div>
                 <div style={{ display: 'grid', gap: 16 }}>
@@ -236,7 +246,7 @@ const PickLocation = ({ ctx, setCtx, onNext, locationOptions, onAddLocation }) =
               {/* Address & Branding Section */}
               <div style={{ marginBottom: 32 }}>
                 <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink)', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <I.Pin size={16} />
+                  <window.I.Pin size={16} />
                   Address & Branding
                 </div>
                 <div style={{ display: 'grid', gap: 16 }}>
@@ -271,9 +281,11 @@ const PickLocation = ({ ctx, setCtx, onNext, locationOptions, onAddLocation }) =
 
 const PickTerminal = ({ ctx, setCtx, onNext, onBack }) => {
   const [sel, setSel] = React.useState(ctx.terminal);
-  // Show terminals at this location (or first 5 if location data has no exact match)
-  const terms = DATA.terminals.filter(t => t.loc === ctx.location.name);
-  const list = terms.length > 0 ? terms : DATA.terminals.slice(0, 5);
+  // Filter terminals by the selected location_id
+  const list = React.useMemo(() => {
+    return window.DATA.terminals.filter(t => t.locationId === ctx.location?.id);
+  }, [ctx.location]);
+
   return (
     <>
       <FlowHeader
@@ -294,17 +306,17 @@ const PickTerminal = ({ ctx, setCtx, onNext, onBack }) => {
               }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
                 <div style={{ width: 36, height: 36, background: 'var(--surface-2)', borderRadius: 6, display: 'grid', placeItems: 'center' }}>
-                  <I.Monitor size={18} />
+                  <window.I.Monitor size={18} />
                 </div>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontWeight: 500, fontSize: 13 }}>{t.name}</div>
                   <div style={{ fontSize: 11, color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>{t.id} · {t.device}</div>
                 </div>
                 {active
-                  ? <div style={{ width: 22, height: 22, borderRadius: '50%', background: 'var(--ink)', display: 'grid', placeItems: 'center' }}><I.Check size={13} style={{ color: '#fff' }} /></div>
-                  : t.status === 'online' ? <span className="chip chip-accent"><I.Wifi size={10} />Online</span>
-                    : t.status === 'syncing' ? <span className="chip chip-warn"><I.Refresh size={10} />Sync</span>
-                      : <span className="chip chip-danger"><I.WifiOff size={10} />Offline</span>}
+                  ? <div style={{ width: 22, height: 22, borderRadius: '50%', background: 'var(--ink)', display: 'grid', placeItems: 'center' }}><window.I.Check size={13} style={{ color: '#fff' }} /></div>
+                  : t.status === 'online' ? <span className="chip chip-accent"><window.I.Wifi size={10} />Online</span>
+                    : t.status === 'syncing' ? <span className="chip chip-warn"><window.I.Refresh size={10} />Sync</span>
+                      : <span className="chip chip-danger"><window.I.WifiOff size={10} />Offline</span>}
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, fontSize: 11 }}>
                 <Stat k="IP" v={t.ip} mono />
@@ -344,7 +356,7 @@ const PickChannel = ({ ctx, setCtx, onNext, onBack }) => {
       />
       <div style={{ maxWidth: 980, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 10 }}>
         {channels.map(c => {
-          const Icon = I[c.icon];
+          const Icon = window.I[c.icon];
           const active = sel?.id === c.id;
           return (
             <div key={c.id} className="card" onClick={() => setSel(c)}
@@ -361,7 +373,7 @@ const PickChannel = ({ ctx, setCtx, onNext, onBack }) => {
                   <div style={{ fontWeight: 500, fontSize: 14 }}>{c.name}</div>
                   <div style={{ fontSize: 11, color: 'var(--muted)' }}>{c.desc}</div>
                 </div>
-                {active && <I.Check size={14} />}
+                {active && <window.I.Check size={14} />}
               </div>
             </div>
           );
@@ -392,7 +404,7 @@ const PickPOSType = ({ ctx, setCtx, onNext, onBack }) => {
       />
       <div style={{ maxWidth: 740, margin: '0 auto', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
         {types.map(t => {
-          const Icon = I[t.icon];
+          const Icon = window.I[t.icon];
           const active = sel?.id === t.id;
           return (
             <div key={t.id} className="card" onClick={() => setSel(t)}
@@ -496,6 +508,5 @@ const Stat = ({ k, v, mono }) => (
     <div style={{ fontSize: 12, fontWeight: 500, fontFamily: mono ? 'var(--font-mono)' : 'inherit' }}>{v}</div>
   </div>
 );
-
 
 export { EntryFlow };

@@ -1,20 +1,29 @@
-// Entry flow screens: Location → Terminal → Channel → POS Type → PIN
+// Entry flow screens: Merchant Login → OTP → Location → Terminal → Channel → POS Type → PIN
 const EntryFlow = ({ step, ctx, setCtx, onNext, onBack, onExit }) => {
-  const [locationOptions, setLocationOptions] = React.useState(DATA.locations);
+  const [locationOptions, setLocationOptions] = React.useState([]);
+
+  React.useEffect(() => {
+    if (ctx.merchant) {
+      const filtered = DATA.locations.filter(l => l.merchant_id === ctx.merchant.id);
+      setLocationOptions(filtered);
+    }
+  }, [ctx.merchant]);
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--bg)' }}>
       <div className="topbar" style={{ background: 'var(--surface)' }}>
         <div className="sb-logo" style={{ width: 24, height: 24 }}>S</div>
         <div style={{ fontWeight: 600, fontSize: 13 }}>Smart POS</div>
-        <span className="chip" style={{ marginLeft: 8 }}>Northwind Hospitality</span>
+        {ctx.merchant && <span className="chip" style={{ marginLeft: 8 }}>{ctx.merchant.name}</span>}
         <div className="topbar-spacer" />
         <FlowSteps step={step} />
         <div className="topbar-spacer" />
         <button className="btn btn-ghost btn-sm" onClick={onExit} title="Skip to dashboard">Skip flow →</button>
       </div>
       <div style={{ flex: 1, overflow: 'auto', padding: '40px 20px' }}>
-        {step === 'location' && <PickLocation ctx={ctx} setCtx={setCtx} onNext={onNext} locationOptions={locationOptions} onAddLocation={(loc) => setLocationOptions(prev => [...prev, loc])} />}
+        {step === 'merchant-login' && <MerchantLogin ctx={ctx} setCtx={setCtx} onNext={onNext} />}
+        {step === 'otp' && <OTPScreen ctx={ctx} setCtx={setCtx} onNext={onNext} onBack={onBack} />}
+        {step === 'location' && <PickLocation ctx={ctx} setCtx={setCtx} onNext={onNext} onBack={onBack} locationOptions={locationOptions} onAddLocation={(loc) => setLocationOptions(prev => [...prev, loc])} />}
         {step === 'terminal' && <PickTerminal ctx={ctx} setCtx={setCtx} onNext={onNext} onBack={onBack} />}
         {step === 'channel' && <PickChannel ctx={ctx} setCtx={setCtx} onNext={onNext} onBack={onBack} />}
         {step === 'pos-type' && <PickPOSType ctx={ctx} setCtx={setCtx} onNext={onNext} onBack={onBack} />}
@@ -26,13 +35,14 @@ const EntryFlow = ({ step, ctx, setCtx, onNext, onBack, onExit }) => {
 
 const FlowSteps = ({ step }) => {
   const steps = [
+    { id: 'merchant-login', label: 'Auth' },
     { id: 'location', label: 'Location' },
     { id: 'terminal', label: 'Terminal' },
     { id: 'channel', label: 'Channel' },
     { id: 'pos-type', label: 'POS Type' },
     { id: 'pin', label: 'Sign in' },
   ];
-  const idx = steps.findIndex(s => s.id === step);
+  const idx = steps.findIndex(s => s.id === step || (step === 'otp' && s.id === 'merchant-login'));
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
       {steps.map((s, i) => (
@@ -64,7 +74,96 @@ const FlowHeader = ({ title, sub, onBack }) => (
   </div>
 );
 
-const PickLocation = ({ ctx, setCtx, onNext, locationOptions, onAddLocation }) => {
+const MerchantLogin = ({ ctx, setCtx, onNext }) => {
+  const [sel, setSel] = React.useState(ctx.merchant);
+  return (
+    <>
+      <FlowHeader
+        title="Merchant Authentication"
+        sub="Identify yourself as a merchant partner to access your locations."
+      />
+      <div style={{ maxWidth: 600, margin: '0 auto' }}>
+        <div className="card" style={{ padding: 24 }}>
+          <div style={{ marginBottom: 20 }}>
+            <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--ink)', marginBottom: 8 }}>Select Merchant Account</label>
+            <div style={{ display: 'grid', gap: 10 }}>
+              {DATA.merchants.map(m => (
+                <div key={m.id} className="card" onClick={() => setSel(m)}
+                  style={{
+                    padding: 16, cursor: 'pointer',
+                    borderColor: sel?.id === m.id ? 'var(--ink)' : 'var(--border)',
+                    boxShadow: sel?.id === m.id ? '0 0 0 1px var(--ink)' : 'none',
+                    background: sel?.id === m.id ? 'var(--bg-2)' : 'var(--surface)',
+                    display: 'flex', alignItems: 'center', gap: 12
+                  }}>
+                  <div style={{ width: 40, height: 40, borderRadius: 8, background: 'var(--accent-soft)', display: 'grid', placeItems: 'center', color: 'var(--accent-ink)', fontWeight: 600 }}>{m.name[0]}</div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 14, fontWeight: 600 }}>{m.name}</div>
+                    <div style={{ fontSize: 12, color: 'var(--muted)' }}>{m.email} · {m.plan}</div>
+                  </div>
+                  {sel?.id === m.id && <I.Check size={16} />}
+                </div>
+              ))}
+            </div>
+          </div>
+          <button className="btn btn-primary" style={{ width: '100%', height: 44 }} disabled={!sel}
+            onClick={() => { setCtx({ ...ctx, merchant: sel }); onNext('otp'); }}>
+            Login to Merchant Dashboard →
+          </button>
+        </div>
+      </div>
+    </>
+  );
+};
+
+const OTPScreen = ({ ctx, setCtx, onNext, onBack }) => {
+  const [otp, setOtp] = React.useState('');
+  const [error, setError] = React.useState(false);
+  const correctOtp = '6666';
+
+  const submit = () => {
+    if (otp === correctOtp) {
+      onNext('location');
+    } else {
+      setError(true);
+      setTimeout(() => { setError(false); setOtp(''); }, 1000);
+    }
+  };
+
+  return (
+    <>
+      <FlowHeader
+        onBack={onBack}
+        title="Verify your identity"
+        sub={`We've sent a 4-digit code to ${ctx.merchant.email}. Enter it below to continue.`}
+      />
+      <div style={{ maxWidth: 400, margin: '0 auto' }}>
+        <div className="card" style={{ padding: 32, textAlign: 'center' }}>
+          <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'var(--accent-soft)', display: 'grid', placeItems: 'center', margin: '0 auto 20px' }}>
+            <I.Shield size={32} style={{ color: 'var(--accent-ink)' }} />
+          </div>
+          <div style={{ fontSize: 14, color: 'var(--muted)', marginBottom: 24 }}>Enter the verification code</div>
+          <input
+            className="input"
+            type="text"
+            maxLength={4}
+            value={otp}
+            onChange={e => setOtp(e.target.value)}
+            style={{ height: 60, fontSize: 32, textAlign: 'center', letterSpacing: 16, fontWeight: 700, marginBottom: 12, borderColor: error ? 'var(--danger)' : 'var(--border)' }}
+            placeholder="0000"
+          />
+          {error && <div style={{ color: 'var(--danger)', fontSize: 12, marginBottom: 16 }}>Invalid OTP. Hint: 6666</div>}
+          <div style={{ marginBottom: 24, fontSize: 12, color: 'var(--muted)' }}>Didn't receive code? <a href="#" style={{ color: 'var(--ink)' }}>Resend code</a></div>
+          <button className="btn btn-primary" style={{ width: '100%', height: 44 }} disabled={otp.length < 4} onClick={submit}>
+            Verify and Continue →
+          </button>
+        </div>
+      </div>
+    </>
+  );
+};
+
+const PickLocation = ({ ctx, setCtx, onNext, onBack, locationOptions, onAddLocation }) => {
   const [sel, setSel] = React.useState(ctx.location);
   const [drawerOpen, setDrawerOpen] = React.useState(false);
   const [newLocation, setNewLocation] = React.useState({
@@ -79,6 +178,7 @@ const PickLocation = ({ ctx, setCtx, onNext, locationOptions, onAddLocation }) =
     const city = newLocation.address.split(',')[1]?.trim() || newLocation.name;
     const location = {
       id,
+      merchant_id: ctx.merchant.id,
       name: newLocation.name,
       code,
       city,
@@ -104,8 +204,9 @@ const PickLocation = ({ ctx, setCtx, onNext, locationOptions, onAddLocation }) =
   return (
     <>
       <FlowHeader
+        onBack={onBack}
         title="Select your location"
-        sub={`Maya · You have access to ${locationOptions.length} locations across 8 cities. Pick where you'll be working today.`}
+        sub={`${ctx.merchant.name} · You have access to ${locationOptions.length} locations. Pick where you'll be working today.`}
       />
       <div style={{ maxWidth: 1100, margin: '0 auto 18px', display: 'flex', justifyContent: 'flex-end' }}>
         <button className="btn btn-primary btn-sm" onClick={() => setDrawerOpen(true)}>Add new location</button>
@@ -167,7 +268,6 @@ const PickLocation = ({ ctx, setCtx, onNext, locationOptions, onAddLocation }) =
               <button className="btn btn-ghost btn-icon" onClick={() => setDrawerOpen(false)}><I.X size={16} /></button>
             </div>
             <div style={{ flex: 1, overflow: 'auto', padding: '28px' }}>
-              {/* Basic Information Section */}
               <div style={{ marginBottom: 32 }}>
                 <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink)', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
                   <I.Building size={16} />
@@ -205,7 +305,6 @@ const PickLocation = ({ ctx, setCtx, onNext, locationOptions, onAddLocation }) =
                 </div>
               </div>
 
-              {/* Contact Information Section */}
               <div style={{ marginBottom: 32 }}>
                 <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink)', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
                   <I.Mail size={16} />
@@ -232,7 +331,6 @@ const PickLocation = ({ ctx, setCtx, onNext, locationOptions, onAddLocation }) =
                 </div>
               </div>
 
-              {/* Address & Branding Section */}
               <div style={{ marginBottom: 32 }}>
                 <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink)', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
                   <I.Pin size={16} />
@@ -270,9 +368,7 @@ const PickLocation = ({ ctx, setCtx, onNext, locationOptions, onAddLocation }) =
 
 const PickTerminal = ({ ctx, setCtx, onNext, onBack }) => {
   const [sel, setSel] = React.useState(ctx.terminal);
-  // Show terminals at this location (or first 5 if location data has no exact match)
-  const terms = DATA.terminals.filter(t => t.loc === ctx.location.name);
-  const list = terms.length > 0 ? terms : DATA.terminals.slice(0, 5);
+  const list = DATA.terminals.filter(t => t.location_id === ctx.location.id);
   return (
     <>
       <FlowHeader
@@ -456,7 +552,7 @@ const PickPIN = ({ ctx, setCtx, onNext, onBack }) => {
         <div className="card" style={{ padding: 28, textAlign: 'center' }}>
           <div className="sb-avatar" style={{ width: 56, height: 56, fontSize: 18, margin: '0 auto 12px' }}>MC</div>
           <div style={{ fontWeight: 600, fontSize: 15 }}>Maya Chen</div>
-          <div style={{ fontSize: 12, color: 'var(--muted)' }}>Admin · Northwind HQ</div>
+          <div style={{ fontSize: 12, color: 'var(--muted)' }}>Admin · {ctx.merchant.name}</div>
           <div style={{ display: 'flex', gap: 10, justifyContent: 'center', margin: '24px 0' }}>
             {[0, 1, 2, 3].map(i => (
               <div key={i} style={{
