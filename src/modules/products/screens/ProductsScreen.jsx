@@ -1,6 +1,7 @@
-﻿import React from 'react';
-// Catalog: Products / Categories / Modifiers
-const Products = () => {
+import React from 'react';
+
+const ProductsScreen = () => {
+  const { DATA, I, Cbx } = window;
   const [tab, setTab] = React.useState('products');
   const [selected, setSelected] = React.useState(new Set());
   const [filter, setFilter] = React.useState('All');
@@ -94,7 +95,7 @@ const Products = () => {
             </thead>
             <tbody>
               {filtered.map(p => {
-                const margin = ((p.price - p.cost) / p.price * 100).toFixed(0);
+                const margin = p.cost ? ((p.price - p.cost) / p.price * 100).toFixed(0) : '100';
                 return (
                   <tr key={p.id} className={selected.has(p.id) ? 'selected' : ''}>
                     <td><Cbx checked={selected.has(p.id)} onClick={() => toggleSel(p.id)}/></td>
@@ -111,20 +112,20 @@ const Products = () => {
                         </div>
                       </div>
                     </td>
-                    <td style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--muted)' }}>{p.sku}</td>
+                    <td style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--muted)' }}>{p.sku || '—'}</td>
                     <td>{p.category}</td>
                     <td>
                       <div style={{ display: 'flex', gap: 3, flexWrap: 'wrap' }}>
-                        {p.channels.slice(0, 2).map(c => <span key={c} className="chip" style={{ fontSize: 10, padding: '1px 5px' }}>{c}</span>)}
-                        {p.channels.length > 2 && <span className="chip" style={{ fontSize: 10, padding: '1px 5px' }}>+{p.channels.length - 2}</span>}
+                        {(p.channels || []).slice(0, 2).map(c => <span key={c} className="chip" style={{ fontSize: 10, padding: '1px 5px' }}>{c}</span>)}
+                        {(p.channels || []).length > 2 && <span className="chip" style={{ fontSize: 10, padding: '1px 5px' }}>+{(p.channels || []).length - 2}</span>}
                       </div>
                     </td>
                     <td className="num" style={{ color: p.modifiers ? 'var(--ink)' : 'var(--muted-2)' }}>{p.modifiers || '—'}</td>
-                    <td className="num" style={{ color: 'var(--muted)' }}>{fmtMoney(p.cost)}</td>
-                    <td className="num" style={{ fontWeight: 500 }}>{fmtMoney(p.price)}</td>
+                    <td className="num" style={{ color: 'var(--muted)' }}>{fmtMoney(p.cost || 0)}</td>
+                    <td className="num" style={{ fontWeight: 500 }}>{fmtMoney(p.price || 0)}</td>
                     <td className="num" style={{ color: margin > 60 ? 'var(--accent)' : 'var(--ink-2)' }}>{margin}%</td>
                     <td className="num" style={{ color: p.status === 'oos' ? 'var(--danger)' : p.status === 'low' ? 'oklch(0.55 0.14 70)' : 'var(--ink)' }}>
-                      {p.stock === 999 ? '∞' : p.stock}
+                      {p.stock === 999 ? '∞' : (p.stock || 0)}
                     </td>
                     <td>
                       {p.status === 'active' && <span className="chip chip-accent"><span className="dot"/>Active</span>}
@@ -155,6 +156,7 @@ const Products = () => {
 };
 
 const CategoriesView = () => {
+  const { I } = window;
   const cats = [
     { name: 'Burgers', count: 18, color: 'oklch(0.65 0.17 25)', priority: 1, schedule: 'All day', channels: 4, parent: null },
     { name: 'Pizza', count: 12, color: 'oklch(0.70 0.15 70)', priority: 2, schedule: 'All day', channels: 3, parent: null },
@@ -204,41 +206,44 @@ const CategoriesView = () => {
   );
 };
 
-const ModifiersView = () => (
-  <div style={{ padding: 16, display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 12 }}>
-    {DATA.modifierGroups.map(g => (
-      <div key={g.id} className="card">
-        <div className="card-head">
-          <div>
-            <div className="card-title">{g.name}</div>
-            <div className="card-sub" style={{ fontFamily: 'var(--font-mono)', fontSize: 10.5 }}>{g.id}</div>
-          </div>
-          <div style={{ marginLeft: 'auto', display: 'flex', gap: 4 }}>
-            {g.required && <span className="chip chip-info">Required</span>}
-            <span className="chip">min {g.min} · max {g.max}</span>
-          </div>
-        </div>
-        <div style={{ padding: 12, display: 'flex', flexDirection: 'column', gap: 4 }}>
-          {g.items.map((it, i) => (
-            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 6px', borderRadius: 4 }}>
-              <I.Drag size={12} style={{ color: 'var(--muted-2)' }}/>
-              <span style={{ flex: 1, fontSize: 12 }}>{it}</span>
-              <button className="btn btn-ghost btn-icon btn-sm"><I.More size={11}/></button>
+const ModifiersView = () => {
+  const { DATA, I } = window;
+  return (
+    <div style={{ padding: 16, display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 12 }}>
+      {DATA.modifierGroups.map(g => (
+        <div key={g.id} className="card">
+          <div className="card-head">
+            <div>
+              <div className="card-title">{g.name}</div>
+              <div className="card-sub" style={{ fontFamily: 'var(--font-mono)', fontSize: 10.5 }}>{g.id}</div>
             </div>
-          ))}
-          <button className="btn btn-sm btn-ghost" style={{ marginTop: 4, justifyContent: 'flex-start' }}>
-            <I.Plus size={11}/> Add modifier
-          </button>
+            <div style={{ marginLeft: 'auto', display: 'flex', gap: 4 }}>
+              {g.required && <span className="chip chip-info">Required</span>}
+              <span className="chip">min {g.min} · max {g.max}</span>
+            </div>
+          </div>
+          <div style={{ padding: 12, display: 'flex', flexDirection: 'column', gap: 4 }}>
+            {g.items.map((it, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 6px', borderRadius: 4 }}>
+                <I.Drag size={12} style={{ color: 'var(--muted-2)' }}/>
+                <span style={{ flex: 1, fontSize: 12 }}>{it}</span>
+                <button className="btn btn-ghost btn-icon btn-sm"><I.More size={11}/></button>
+              </div>
+            ))}
+            <button className="btn btn-sm btn-ghost" style={{ marginTop: 4, justifyContent: 'flex-start' }}>
+              <I.Plus size={11}/> Add modifier
+            </button>
+          </div>
+          <div style={{ padding: 10, borderTop: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 8, fontSize: 11, color: 'var(--muted)' }}>
+            <I.Box size={11}/> Linked to {g.linked} products
+            <div style={{ flex: 1 }}/>
+            <button className="btn btn-sm">Edit</button>
+          </div>
         </div>
-        <div style={{ padding: 10, borderTop: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 8, fontSize: 11, color: 'var(--muted)' }}>
-          <I.Box size={11}/> Linked to {g.linked} products
-          <div style={{ flex: 1 }}/>
-          <button className="btn btn-sm">Edit</button>
-        </div>
-      </div>
-    ))}
-  </div>
-);
+      ))}
+    </div>
+  );
+}
 
 const DealsView = () => (
   <div style={{ padding: 60, textAlign: 'center', color: 'var(--muted)' }}>
@@ -246,6 +251,7 @@ const DealsView = () => (
     <div style={{ fontSize: 11 }}>Deal builder UI here · Burger + Fries + Drink combos, 2-for-1 offers, time-restricted bundles</div>
   </div>
 );
+
 const TaxesView = () => (
   <div style={{ padding: 16 }}>
     <table className="table">
@@ -273,6 +279,7 @@ const TaxesView = () => (
 );
 
 const ProductDrawer = ({ item, mode, onClose }) => {
+  const { DATA, I, Cbx } = window;
   const p = item || { name: '', sku: '', price: 0, cost: 0, category: 'Burgers', channels: [], modifiers: 0, stock: 0 };
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.3)', zIndex: 50 }} onClick={onClose}>
@@ -353,5 +360,5 @@ const Field = ({ label, children }) => (
   </label>
 );
 
-
-export { Products, Field };
+export default ProductsScreen;
+export { Field };

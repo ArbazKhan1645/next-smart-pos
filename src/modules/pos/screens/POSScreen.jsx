@@ -1,6 +1,8 @@
-﻿import React from 'react';
+import React from 'react';
+
 // POS Register — primary screen with smart cart logic
-const POSRegister = ({ ctx, onExit }) => {
+const POSScreen = ({ ctx, onExit }) => {
+  const { DATA, I, PRODUCT_GROUPS, DEAL_GROUPS, DEAL_PRODUCTS, MOD_GROUP_ITEMS } = window;
   const [cart, setCart] = React.useState([]);
   const [activeCat, setActiveCat] = React.useState('Burgers');
   const [search, setSearch] = React.useState('');
@@ -8,18 +10,18 @@ const POSRegister = ({ ctx, onExit }) => {
   const isRetail = ctx?.posType?.id === 'retail';
 
   // All products (regular + deal triggers)
-  const allProducts = [...DATA.products, ...window.DEAL_PRODUCTS];
-  const cats = Array.from(new Set(allProducts.map(p => p.category)));
+  const allProducts = React.useMemo(() => [...DATA.products, ...DEAL_PRODUCTS], [DATA.products, DEAL_PRODUCTS]);
+  const cats = React.useMemo(() => Array.from(new Set(allProducts.map(p => p.category))), [allProducts]);
   const filtered = allProducts.filter(p => {
     if (search) return (p.name + ' ' + (p.sku || '') + ' ' + p.id).toLowerCase().includes(search.toLowerCase());
     return p.category === activeCat;
   });
 
   const handleAddProduct = (p) => {
-    const links = window.PRODUCT_GROUPS[p.id] || { modGroups: [], dealGroups: [] };
+    const links = PRODUCT_GROUPS[p.id] || { modGroups: [], dealGroups: [] };
     // 1. Check if it's a deal product
     if (links.dealGroups && links.dealGroups.length > 0) {
-      const group = window.DEAL_GROUPS.find(g => g.id === links.dealGroups[0]);
+      const group = DEAL_GROUPS.find(g => g.id === links.dealGroups[0]);
       setModal({ type: 'deal', product: p, group });
       return;
     }
@@ -34,7 +36,6 @@ const POSRegister = ({ ctx, onExit }) => {
 
   const addToCart = (line) => setCart(c => [...c, line]);
   const updateQty = (lineId, delta) => setCart(c => c.map(l => l.lineId === lineId ? { ...l, qty: Math.max(0, l.qty + delta) } : l).filter(l => l.qty > 0));
-  const removeLine = (lineId) => setCart(c => c.filter(l => l.lineId !== lineId));
 
   const lineTotal = (l) => {
     const modSum = (l.mods || []).reduce((a, m) => a + m.price, 0);
@@ -48,7 +49,7 @@ const POSRegister = ({ ctx, onExit }) => {
   const fmt = (n) => '$' + n.toFixed(2);
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '64px 1fr 400px', height: '100vh', overflow: 'hidden', background: 'var(--bg)' }}>
+    <div style={{ display: 'grid', gridTemplateColumns: '64px 1fr 400px', height: '100vh', overflow: 'hidden', background: 'var(--bg)', position: 'fixed', inset: 0, zIndex: 1000 }}>
       {/* Left rail */}
       <div style={{ background: 'var(--surface)', borderRight: '1px solid var(--border)', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '10px 0' }}>
         <div className="sb-logo" style={{ width: 32, height: 32, fontSize: 14 }}>S</div>
@@ -105,7 +106,7 @@ const POSRegister = ({ ctx, onExit }) => {
         <div style={{ flex: 1, overflowY: 'auto', padding: 16 }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 8 }}>
             {filtered.map(p => {
-              const links = window.PRODUCT_GROUPS[p.id] || {};
+              const links = PRODUCT_GROUPS[p.id] || {};
               const isDeal = links.dealGroups && links.dealGroups.length > 0;
               const hasMods = links.modGroups && links.modGroups.length > 0;
               return (
@@ -234,8 +235,16 @@ const POSRegister = ({ ctx, onExit }) => {
   );
 };
 
-// Modifier picker modal — handles min/max across multiple groups
+const Row = ({ k, v, muted, strong }) => (
+  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: strong ? 15 : 12, fontWeight: strong ? 600 : 400, color: muted ? 'var(--muted)' : 'var(--ink)', marginBottom: 2 }}>
+    <span>{k}</span>
+    <span className="num" style={{ fontFamily: 'var(--font-mono)' }}>{v}</span>
+  </div>
+);
+
+// Modifier picker modal
 const ModifierModal = ({ product, groupIds, onCancel, onConfirm }) => {
+  const { DATA, I, MOD_GROUP_ITEMS } = window;
   const groups = groupIds.map(id => DATA.modifierGroups.find(g => g.id === id)).filter(Boolean);
   const [selected, setSelected] = React.useState(() => {
     const init = {};
@@ -272,7 +281,7 @@ const ModifierModal = ({ product, groupIds, onCancel, onConfirm }) => {
         </button>
       </>}>
       {groups.map(g => {
-        const items = window.MOD_GROUP_ITEMS[g.id] || [];
+        const items = MOD_GROUP_ITEMS[g.id] || [];
         const cur = selected[g.id] || [];
         const valid = cur.length >= g.min && cur.length <= g.max;
         return (
@@ -320,6 +329,7 @@ const ModifierModal = ({ product, groupIds, onCancel, onConfirm }) => {
 };
 
 const DealModal = ({ product, group, onCancel, onConfirm }) => {
+  const { I } = window;
   const [picks, setPicks] = React.useState(() => group.subProducts.map(() => []));
   const togglePick = (gIdx, opt, max) => {
     setPicks(p => {
@@ -396,25 +406,27 @@ const DealModal = ({ product, group, onCancel, onConfirm }) => {
   );
 };
 
-const Modal = ({ title, subtitle, onClose, footer, children }) => (
-  <div style={{ position: 'fixed', inset: 0, background: 'rgba(10,10,10,0.4)', zIndex: 100, display: 'grid', placeItems: 'center' }} onClick={onClose}>
-    <div onClick={e => e.stopPropagation()} style={{
-      width: 'min(720px, 92vw)', maxHeight: '85vh', background: 'var(--surface)',
-      border: '1px solid var(--border)', borderRadius: 10, boxShadow: 'var(--shadow-lg)',
-      display: 'flex', flexDirection: 'column', overflow: 'hidden'
-    }}>
-      <div style={{ padding: '14px 18px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 10 }}>
-        <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 14, fontWeight: 600 }}>{title}</div>
-          {subtitle && <div style={{ fontSize: 11, color: 'var(--muted)' }}>{subtitle}</div>}
+const Modal = ({ title, subtitle, onClose, footer, children }) => {
+  const { I } = window;
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(10,10,10,0.4)', zIndex: 100, display: 'grid', placeItems: 'center' }} onClick={onClose}>
+      <div onClick={e => e.stopPropagation()} style={{
+        width: 'min(720px, 92vw)', maxHeight: '85vh', background: 'var(--surface)',
+        border: '1px solid var(--border)', borderRadius: 10, boxShadow: 'var(--shadow-lg)',
+        display: 'flex', flexDirection: 'column', overflow: 'hidden'
+      }}>
+        <div style={{ padding: '14px 18px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 14, fontWeight: 600 }}>{title}</div>
+            {subtitle && <div style={{ fontSize: 11, color: 'var(--muted)' }}>{subtitle}</div>}
+          </div>
+          <button className="btn btn-ghost btn-icon btn-sm" onClick={onClose}><I.X size={13}/></button>
         </div>
-        <button className="btn btn-ghost btn-icon btn-sm" onClick={onClose}><I.X size={13}/></button>
+        <div style={{ flex: 1, overflowY: 'auto', padding: 18 }}>{children}</div>
+        <div style={{ padding: '12px 18px', borderTop: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 8 }}>{footer}</div>
       </div>
-      <div style={{ flex: 1, overflowY: 'auto', padding: 18 }}>{children}</div>
-      <div style={{ padding: '12px 18px', borderTop: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 8 }}>{footer}</div>
     </div>
-  </div>
-);
+  );
+}
 
-
-export { POSRegister };
+export default POSScreen;

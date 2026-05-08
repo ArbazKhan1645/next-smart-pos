@@ -1,7 +1,7 @@
 import React from 'react';
 
 // Entry flow screens: Location → Terminal → Channel → POS Type → PIN
-const EntryFlow = ({ step, ctx, setCtx, onNext, onBack, onExit }) => {
+const EntryFlowScreen = ({ step, ctx, setCtx, onNext, onBack, onExit }) => {
   const filteredLocations = React.useMemo(() => {
     return window.DATA.locations.filter(l => l.merchantId === ctx.merchant?.id);
   }, [ctx.merchant]);
@@ -281,7 +281,6 @@ const PickLocation = ({ ctx, setCtx, onNext, locationOptions, onAddLocation }) =
 
 const PickTerminal = ({ ctx, setCtx, onNext, onBack }) => {
   const [sel, setSel] = React.useState(ctx.terminal);
-  // Filter terminals by the selected location_id
   const list = React.useMemo(() => {
     return window.DATA.terminals.filter(t => t.locationId === ctx.location?.id);
   }, [ctx.location]);
@@ -509,4 +508,4 @@ const Stat = ({ k, v, mono }) => (
   </div>
 );
 
-export { EntryFlow };
+export default EntryFlowScreen;

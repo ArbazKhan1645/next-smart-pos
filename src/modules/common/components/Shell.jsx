@@ -1,4 +1,6 @@
-﻿import React from 'react';
+import React from 'react';
+import { I } from '../icons';
+
 // Sidebar component
 const Sidebar = ({ route, setRoute, collapsed }) => {
   const [open, setOpen] = React.useState({ catalog: true, ops: true });
@@ -140,9 +142,5 @@ const Spark = ({ data, color = 'var(--accent)', w = 60, h = 22 }) => {
 const Cbx = ({ checked, onClick }) => (
   <span className={'cbx' + (checked ? ' checked' : '')} onClick={onClick}/>
 );
-
-
-
-
 
 export { Sidebar, Topbar, Spark, Cbx };

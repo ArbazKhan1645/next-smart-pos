@@ -1,6 +1,8 @@
-﻿import React from 'react';
-// Locations / Terminals / Staff
-const Locations = () => {
+import React from 'react';
+
+// Operations Screen: Locations / Terminals / Staff / Printers / Channels
+const LocationsScreen = () => {
+  const { DATA, I, Field } = window;
   const [tab, setTab] = React.useState('locations');
   const [locations, setLocations] = React.useState([...DATA.locations]);
   const [drawerOpen, setDrawerOpen] = React.useState(false);
@@ -15,7 +17,7 @@ const Locations = () => {
       <div className="page-header">
         <div style={{ flex: 1 }}>
           <h1 className="page-title">Operations</h1>
-          <p className="page-sub">Locations, terminals, staff and printers across the Northwind network.</p>
+          <p className="page-sub">Locations, terminals, staff and printers across the network.</p>
         </div>
         <div style={{ display: 'flex', gap: 6 }}>
           <button className="btn"><I.Download size={12} /> Export</button>
@@ -46,6 +48,7 @@ const Locations = () => {
 };
 
 const LocationsView = ({ locations }) => {
+  const { I } = window;
   const [view, setView] = React.useState('list');
   const fmtMoney = (n) => '$' + n.toLocaleString('en-US');
   return (
@@ -92,8 +95,8 @@ const LocationsView = ({ locations }) => {
                   <td className="num" style={{ fontWeight: 500 }}>{l.sales > 0 ? fmtMoney(l.sales) : '—'}</td>
                   <td>
                     <div style={{ display: 'flex', gap: 3 }}>
-                      {l.channels.slice(0, 2).map(c => <span key={c} className="chip" style={{ fontSize: 10 }}>{c}</span>)}
-                      {l.channels.length > 2 && <span className="chip" style={{ fontSize: 10 }}>+{l.channels.length - 2}</span>}
+                      {(l.channels || []).slice(0, 2).map(c => <span key={c} className="chip" style={{ fontSize: 10 }}>{c}</span>)}
+                      {(l.channels || []).length > 2 && <span className="chip" style={{ fontSize: 10 }}>+{(l.channels || []).length - 2}</span>}
                     </div>
                   </td>
                   <td className="actions-col"><button className="btn btn-ghost btn-icon btn-sm"><I.More size={12} /></button></td>
@@ -133,7 +136,6 @@ const LocationsView = ({ locations }) => {
       {view === 'map' && (
         <div style={{ padding: 16 }}>
           <div className="card" style={{ height: 520, position: 'relative', background: 'linear-gradient(180deg, oklch(0.97 0.01 220), oklch(0.95 0.01 145))', overflow: 'hidden' }}>
-            {/* Stylized US map dots */}
             <svg viewBox="0 0 800 400" style={{ width: '100%', height: '100%' }}>
               <defs><pattern id="g" width="20" height="20" patternUnits="userSpaceOnUse">
                 <path d="M 20 0 L 0 0 0 20" fill="none" stroke="var(--border)" strokeWidth="0.5" />
@@ -166,6 +168,7 @@ const LocationsView = ({ locations }) => {
 };
 
 const NewLocationDrawer = ({ onClose, onCreate }) => {
+  const { I, Field } = window;
   const [name, setName] = React.useState('');
   const [email, setEmail] = React.useState('');
   const [phone, setPhone] = React.useState('');
@@ -240,52 +243,64 @@ const NewLocationDrawer = ({ onClose, onCreate }) => {
           <button className="btn btn-primary" style={{ flex: 1 }} onClick={createLocation} disabled={!name.trim()}>Create location</button>
         </div>
       </div>
+      <style>{`
+        .input {
+          width: 100%; padding: 6px 8px; font-size: 12px; font-family: inherit;
+          border: 1px solid var(--border); border-radius: 4px; background: var(--surface);
+          color: var(--ink); outline: none;
+        }
+        .input:focus { border-color: var(--ink); }
+      `}</style>
     </div>
   );
 };
 
-const TerminalsView = () => (
-  <div style={{ overflowX: 'auto' }}>
-    <table className="table">
-      <thead>
-        <tr><th>Terminal</th><th>ID</th><th>Location</th><th>Device</th><th>IP</th><th>Battery</th><th>Printer</th><th>Status</th><th className="actions-col"></th></tr>
-      </thead>
-      <tbody>
-        {DATA.terminals.map(t => (
-          <tr key={t.id}>
-            <td><div style={{ fontWeight: 500 }}>{t.name}</div></td>
-            <td style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--muted)' }}>{t.id}</td>
-            <td>{t.loc}</td>
-            <td style={{ color: 'var(--muted)' }}>{t.device}</td>
-            <td style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--muted)' }}>{t.ip}</td>
-            <td>
-              {t.battery == null ? <span style={{ color: 'var(--muted-2)' }}>—</span> : (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <div style={{ width: 36, height: 6, background: 'var(--surface-2)', borderRadius: 3, overflow: 'hidden' }}>
-                    <div style={{
-                      width: t.battery + '%', height: '100%',
-                      background: t.battery < 20 ? 'var(--danger)' : t.battery < 50 ? 'oklch(0.72 0.16 70)' : 'var(--accent)'
-                    }} />
+const TerminalsView = () => {
+  const { DATA, I } = window;
+  return (
+    <div style={{ overflowX: 'auto' }}>
+      <table className="table">
+        <thead>
+          <tr><th>Terminal</th><th>ID</th><th>Location</th><th>Device</th><th>IP</th><th>Battery</th><th>Printer</th><th>Status</th><th className="actions-col"></th></tr>
+        </thead>
+        <tbody>
+          {DATA.terminals.map(t => (
+            <tr key={t.id}>
+              <td><div style={{ fontWeight: 500 }}>{t.name}</div></td>
+              <td style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--muted)' }}>{t.id}</td>
+              <td>{t.loc || '—'}</td>
+              <td style={{ color: 'var(--muted)' }}>{t.device}</td>
+              <td style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--muted)' }}>{t.ip}</td>
+              <td>
+                {t.battery == null ? <span style={{ color: 'var(--muted-2)' }}>—</span> : (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <div style={{ width: 36, height: 6, background: 'var(--surface-2)', borderRadius: 3, overflow: 'hidden' }}>
+                      <div style={{
+                        width: t.battery + '%', height: '100%',
+                        background: t.battery < 20 ? 'var(--danger)' : t.battery < 50 ? 'oklch(0.72 0.16 70)' : 'var(--accent)'
+                      }} />
+                    </div>
+                    <span className="num" style={{ fontSize: 11 }}>{t.battery}%</span>
                   </div>
-                  <span className="num" style={{ fontSize: 11 }}>{t.battery}%</span>
-                </div>
-              )}
-            </td>
-            <td style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--muted)' }}>{t.printer}</td>
-            <td>
-              {t.status === 'online' && <span className="chip chip-accent"><I.Wifi size={10} />Online</span>}
-              {t.status === 'syncing' && <span className="chip chip-warn"><I.Refresh size={10} />Syncing</span>}
-              {t.status === 'offline' && <span className="chip chip-danger"><I.WifiOff size={10} />Offline</span>}
-            </td>
-            <td className="actions-col"><button className="btn btn-ghost btn-icon btn-sm"><I.More size={12} /></button></td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  </div>
-);
+                )}
+              </td>
+              <td style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--muted)' }}>{t.printer || '—'}</td>
+              <td>
+                {t.status === 'online' && <span className="chip chip-accent"><I.Wifi size={10} />Online</span>}
+                {t.status === 'syncing' && <span className="chip chip-warn"><I.Refresh size={10} />Syncing</span>}
+                {t.status === 'offline' && <span className="chip chip-danger"><I.WifiOff size={10} />Offline</span>}
+              </td>
+              <td className="actions-col"><button className="btn btn-ghost btn-icon btn-sm"><I.More size={12} /></button></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
 
 const StaffView = () => {
+  const { DATA, I } = window;
   const [role, setRole] = React.useState('All');
   const filtered = role === 'All' ? DATA.staff : DATA.staff.filter(s => s.role === role);
   const fmtAgo = (m) => m == null ? '—' : m < 60 ? m + 'm' : Math.floor(m / 60) + 'h';
@@ -342,55 +357,60 @@ const StaffView = () => {
   );
 };
 
-const PrintersView = () => (
-  <div style={{ padding: 16, display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 12 }}>
-    {[
-      { name: 'Kitchen — Hot Line', id: 'EPSON-TM82-A', loc: 'SoHo', status: 'online', queue: 0, routed: 24 },
-      { name: 'Kitchen — Cold Prep', id: 'STAR-TSP143', loc: 'SoHo', status: 'online', queue: 2, routed: 12 },
-      { name: 'Bar Receipt', id: 'EPSON-TM30', loc: 'SoHo', status: 'online', queue: 0, routed: 8 },
-      { name: 'Drive-thru', id: 'EPSON-TM82-CHI', loc: 'Chicago', status: 'low-paper', queue: 1, routed: 18 },
-      { name: 'Patio Receipt', id: 'BIXOLON-SPP', loc: 'Miami', status: 'offline', queue: 5, routed: 6 },
-      { name: 'Counter Receipt', id: 'STAR-TSP100', loc: 'Brooklyn', status: 'online', queue: 0, routed: 14 },
-    ].map((p, i) => (
-      <div key={i} className="card" style={{ padding: 14 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-          <div style={{ width: 32, height: 32, background: 'var(--surface-2)', borderRadius: 6, display: 'grid', placeItems: 'center' }}>
-            <I.Printer size={16} />
+const PrintersView = () => {
+  const { I } = window;
+  return (
+    <div style={{ padding: 16, display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 12 }}>
+      {[
+        { name: 'Kitchen — Hot Line', id: 'EPSON-TM82-A', loc: 'SoHo', status: 'online', queue: 0, routed: 24 },
+        { name: 'Kitchen — Cold Prep', id: 'STAR-TSP143', loc: 'SoHo', status: 'online', queue: 2, routed: 12 },
+        { name: 'Bar Receipt', id: 'EPSON-TM30', loc: 'SoHo', status: 'online', queue: 0, routed: 8 },
+        { name: 'Drive-thru', id: 'EPSON-TM82-CHI', loc: 'Chicago', status: 'low-paper', queue: 1, routed: 18 },
+        { name: 'Patio Receipt', id: 'BIXOLON-SPP', loc: 'Miami', status: 'offline', queue: 5, routed: 6 },
+        { name: 'Counter Receipt', id: 'STAR-TSP100', loc: 'Brooklyn', status: 'online', queue: 0, routed: 14 },
+      ].map((p, i) => (
+        <div key={i} className="card" style={{ padding: 14 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+            <div style={{ width: 32, height: 32, background: 'var(--surface-2)', borderRadius: 6, display: 'grid', placeItems: 'center' }}>
+              <I.Printer size={16} />
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontWeight: 500 }}>{p.name}</div>
+              <div style={{ fontSize: 11, color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>{p.id}</div>
+            </div>
+            {p.status === 'online' && <span className="chip chip-accent"><span className="dot" />OK</span>}
+            {p.status === 'low-paper' && <span className="chip chip-warn"><span className="dot" />Low paper</span>}
+            {p.status === 'offline' && <span className="chip chip-danger"><span className="dot" />Offline</span>}
           </div>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontWeight: 500 }}>{p.name}</div>
-            <div style={{ fontSize: 11, color: 'var(--muted)', fontFamily: 'var(--font-mono)' }}>{p.id}</div>
-          </div>
-          {p.status === 'online' && <span className="chip chip-accent"><span className="dot" />OK</span>}
-          {p.status === 'low-paper' && <span className="chip chip-warn"><span className="dot" />Low paper</span>}
-          {p.status === 'offline' && <span className="chip chip-danger"><span className="dot" />Offline</span>}
-        </div>
-        <div style={{ display: 'flex', gap: 10, fontSize: 11 }}>
-          <div><div style={{ color: 'var(--muted)' }}>Location</div><div>{p.loc}</div></div>
-          <div><div style={{ color: 'var(--muted)' }}>Queue</div><div>{p.queue}</div></div>
-          <div><div style={{ color: 'var(--muted)' }}>Routed</div><div>{p.routed} items</div></div>
-        </div>
-      </div>
-    ))}
-  </div>
-);
-
-const ChannelsView = () => (
-  <div style={{ padding: 16, display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 12 }}>
-    {DATA.channels.map(c => (
-      <div key={c.name} className="card" style={{ padding: 14 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ width: 28, height: 28, background: c.color, borderRadius: 6, opacity: 0.18 }} />
-          <div>
-            <div style={{ fontWeight: 500 }}>{c.name}</div>
-            <div style={{ fontSize: 11, color: 'var(--muted)' }}>{c.value}% of orders</div>
+          <div style={{ display: 'flex', gap: 10, fontSize: 11 }}>
+            <div><div style={{ color: 'var(--muted)' }}>Location</div><div>{p.loc}</div></div>
+            <div><div style={{ color: 'var(--muted)' }}>Queue</div><div>{p.queue}</div></div>
+            <div><div style={{ color: 'var(--muted)' }}>Routed</div><div>{p.routed} items</div></div>
           </div>
         </div>
-        <div style={{ marginTop: 12, fontSize: 11, color: 'var(--muted)' }}>Service charge · Tax inclusive · Auto-route to kitchen</div>
-      </div>
-    ))}
-  </div>
-);
+      ))}
+    </div>
+  );
+}
 
+const ChannelsView = () => {
+  const { DATA } = window;
+  return (
+    <div style={{ padding: 16, display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 12 }}>
+      {(DATA.channels || []).map(c => (
+        <div key={c.name} className="card" style={{ padding: 14 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ width: 28, height: 28, background: c.color, borderRadius: 6, opacity: 0.18 }} />
+            <div>
+              <div style={{ fontWeight: 500 }}>{c.name}</div>
+              <div style={{ fontSize: 11, color: 'var(--muted)' }}>{c.value}% of orders</div>
+            </div>
+          </div>
+          <div style={{ marginTop: 12, fontSize: 11, color: 'var(--muted)' }}>Service charge · Tax inclusive · Auto-route to kitchen</div>
+        </div>
+      ))}
+    </div>
+  );
+}
 
-export { Locations };
+export default LocationsScreen;

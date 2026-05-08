@@ -1,6 +1,8 @@
-﻿import React from 'react';
+import React from 'react';
+
 // Dashboard page
-const Dashboard = () => {
+const DashboardScreen = () => {
+  const { DATA, I, Spark } = window;
   const fmt = (n) => n.toLocaleString('en-US');
   const fmtMoney = (n) => '$' + n.toLocaleString('en-US', { maximumFractionDigits: 2 });
   const maxHourly = Math.max(...DATA.hourly.map(h => h.v));
@@ -266,5 +268,4 @@ const DonutChart = ({ data }) => {
   );
 };
 
-
-export { Dashboard, OrderStatus, RevenueChart, DonutChart };
+export default DashboardScreen;
