@@ -143,4 +143,11 @@ const Cbx = ({ checked, onClick }) => (
   <span className={'cbx' + (checked ? ' checked' : '')} onClick={onClick}/>
 );
 
-export { Sidebar, Topbar, Spark, Cbx };
+const Field = ({ label, children }) => (
+  <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+    <span style={{ fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.04em', fontWeight: 500 }}>{label}</span>
+    {children}
+  </label>
+);
+
+export { Sidebar, Topbar, Spark, Cbx, Field };

@@ -8,9 +8,9 @@ import { DEAL_GROUPS, DEAL_PRODUCTS, PRODUCT_GROUPS, MOD_GROUP_ITEMS, CUSTOMERS 
 
 // ── Common Modules ──
 import { I, Ico } from './modules/common/icons';
-import { Sidebar, Topbar, Spark, Cbx } from './modules/common/components/Shell';
+import { Sidebar, Topbar, Spark, Cbx, Field } from './modules/common/components/Shell';
 import {
-  useTweaks, TweaksPanel, TweakSection, TweakRow,
+  useTweaks, TweaksProvider, TweaksPanel, TweakSection, TweakRow,
   TweakSlider, TweakToggle, TweakRadio, TweakSelect,
   TweakText, TweakNumber, TweakColor, TweakButton,
 } from './modules/common/components/TweaksPanel';
@@ -40,6 +40,7 @@ window.MOD_GROUP_ITEMS = MOD_GROUP_ITEMS;
 window.CUSTOMERS = CUSTOMERS;
 window.Spark = Spark;
 window.Cbx = Cbx;
+window.Field = Field;
 window.useTweaks = useTweaks;
 
 // ── Routes Configuration ──
@@ -184,4 +185,8 @@ const App = () => {
   );
 };
 
-ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <TweaksProvider>
+    <App />
+  </TweaksProvider>
+);

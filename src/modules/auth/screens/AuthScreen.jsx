@@ -45,12 +45,13 @@ const AuthScreen = ({ onLoginSuccess }) => {
 const inputCls = { width: '100%', padding: '8px 10px', fontSize: 13, fontFamily: 'inherit', border: '1px solid var(--border)', borderRadius: 5, background: 'var(--surface)', outline: 'none' };
 
 const LoginPanel = ({ onForgot, onSignup, onOTP }) => {
+  const { DATA, I, Field } = window;
   const [email, setEmail] = React.useState('maya@northwind.co');
   const [password, setPassword] = React.useState('password123');
   const [error, setError] = React.useState('');
 
   const handleContinue = () => {
-    const merchant = window.DATA.merchants.find(m => m.email === email && m.password === password);
+    const merchant = DATA.merchants.find(m => m.email === email && m.password === password);
     if (merchant) {
       setError('');
       onOTP(merchant);
@@ -63,14 +64,14 @@ const LoginPanel = ({ onForgot, onSignup, onOTP }) => {
     <div style={{ maxWidth: 360, margin: '0 auto', width: '100%' }}>
       <div style={{ fontSize: 22, fontWeight: 600, letterSpacing: '-0.02em', marginBottom: 4 }}>Welcome back</div>
       <div style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 24 }}>Sign in to your Smart POS workspace</div>
-      <window.Field label="Email"><input style={inputCls} placeholder="you@company.com" value={email} onChange={e => setEmail(e.target.value)} /></window.Field>
+      <Field label="Email"><input style={inputCls} placeholder="you@company.com" value={email} onChange={e => setEmail(e.target.value)} /></Field>
       <div style={{ height: 12 }} />
-      <window.Field label="Password">
+      <Field label="Password">
         <div style={{ position: 'relative' }}>
           <input style={inputCls} type="password" placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} />
-          <button className="btn btn-ghost btn-icon btn-sm" style={{ position: 'absolute', right: 4, top: 4 }}><window.I.Eye size={12} /></button>
+          <button className="btn btn-ghost btn-icon btn-sm" style={{ position: 'absolute', right: 4, top: 4 }}><I.Eye size={12} /></button>
         </div>
-      </window.Field>
+      </Field>
       {error && <div style={{ color: 'var(--danger)', fontSize: 12, marginTop: 8 }}>{error}</div>}
       <div style={{ display: 'flex', alignItems: 'center', marginTop: 10 }}>
         <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12 }}>
@@ -93,34 +94,41 @@ const LoginPanel = ({ onForgot, onSignup, onOTP }) => {
   );
 };
 
-const SignupPanel = ({ onBack, onNext }) => (
-  <div style={{ maxWidth: 360, margin: '0 auto', width: '100%' }}>
-    <button className="btn btn-ghost btn-sm" style={{ marginBottom: 16 }} onClick={onBack}>← Back</button>
-    <div style={{ fontSize: 22, fontWeight: 600, letterSpacing: '-0.02em', marginBottom: 4 }}>Create workspace</div>
-    <div style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 24 }}>Step 1 of 3 — your business</div>
-    <window.Field label="Workspace name"><input style={inputCls} placeholder="e.g. Northwind Hospitality" /></window.Field><div style={{ height: 12 }} />
-    <window.Field label="Business type"><select style={inputCls}><option>Restaurant / QSR</option><option>Cafe / Coffee</option><option>Retail</option><option>Mixed</option></select></window.Field><div style={{ height: 12 }} />
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-      <window.Field label="Country"><select style={inputCls}><option>United States</option></select></window.Field>
-      <window.Field label="Currency"><select style={inputCls}><option>USD ($)</option></select></window.Field>
-    </div><div style={{ height: 12 }} />
-    <window.Field label="Email"><input style={inputCls} placeholder="you@company.com" /></window.Field><div style={{ height: 12 }} />
-    <window.Field label="Password"><input style={inputCls} type="password" placeholder="••••••••" /></window.Field>
-    <button className="btn btn-primary" style={{ width: '100%', marginTop: 18, height: 36, justifyContent: 'center' }} onClick={onNext}>Continue →</button>
-  </div>
-);
+const SignupPanel = ({ onBack, onNext }) => {
+  const { Field } = window;
+  return (
+    <div style={{ maxWidth: 360, margin: '0 auto', width: '100%' }}>
+      <button className="btn btn-ghost btn-sm" style={{ marginBottom: 16 }} onClick={onBack}>← Back</button>
+      <div style={{ fontSize: 22, fontWeight: 600, letterSpacing: '-0.02em', marginBottom: 4 }}>Create workspace</div>
+      <div style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 24 }}>Step 1 of 3 — your business</div>
+      <Field label="Workspace name"><input style={inputCls} placeholder="e.g. Northwind Hospitality" /></Field><div style={{ height: 12 }} />
+      <Field label="Business type"><select style={inputCls}><option>Restaurant / QSR</option><option>Cafe / Coffee</option><option>Retail</option><option>Mixed</option></select></Field><div style={{ height: 12 }} />
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+        <Field label="Country"><select style={inputCls}><option>United States</option></select></Field>
+        <Field label="Currency"><select style={inputCls}><option>USD ($)</option></select></Field>
+      </div><div style={{ height: 12 }} />
+      <Field label="Email"><input style={inputCls} placeholder="you@company.com" /></Field><div style={{ height: 12 }} />
+      <Field label="Password"><input style={inputCls} type="password" placeholder="••••••••" /></Field>
+      <button className="btn btn-primary" style={{ width: '100%', marginTop: 18, height: 36, justifyContent: 'center' }} onClick={onNext}>Continue →</button>
+    </div>
+  );
+};
 
-const ForgotPanel = ({ onBack }) => (
-  <div style={{ maxWidth: 360, margin: '0 auto', width: '100%' }}>
-    <button className="btn btn-ghost btn-sm" style={{ marginBottom: 16 }} onClick={onBack}>← Back</button>
-    <div style={{ fontSize: 22, fontWeight: 600, letterSpacing: '-0.02em', marginBottom: 4 }}>Reset your password</div>
-    <div style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 24 }}>We'll email you a reset link.</div>
-    <window.Field label="Email"><input style={inputCls} placeholder="you@company.com" /></window.Field>
-    <button className="btn btn-primary" style={{ width: '100%', marginTop: 16, height: 36, justifyContent: 'center' }}>Send reset link</button>
-  </div>
-);
+const ForgotPanel = ({ onBack }) => {
+  const { Field } = window;
+  return (
+    <div style={{ maxWidth: 360, margin: '0 auto', width: '100%' }}>
+      <button className="btn btn-ghost btn-sm" style={{ marginBottom: 16 }} onClick={onBack}>← Back</button>
+      <div style={{ fontSize: 22, fontWeight: 600, letterSpacing: '-0.02em', marginBottom: 4 }}>Reset your password</div>
+      <div style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 24 }}>We'll email you a reset link.</div>
+      <Field label="Email"><input style={inputCls} placeholder="you@company.com" /></Field>
+      <button className="btn btn-primary" style={{ width: '100%', marginTop: 16, height: 36, justifyContent: 'center' }}>Send reset link</button>
+    </div>
+  );
+};
 
 const OTPPanel = ({ merchant, onBack, onDone }) => {
+  const { I } = window;
   const [code, setCode] = React.useState(['1', '7', '3', '', '', '']);
   const [error, setError] = React.useState('');
 

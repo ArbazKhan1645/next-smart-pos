@@ -114,8 +114,20 @@ const __TWEAKS_STYLE = `
 `;
 
 // ── useTweaks ───────────────────────────────────────────────────────────────
-function useTweaks(defaults) {
-  const [values, setValues] = React.useState(defaults);
+const TweaksContext = React.createContext();
+
+function useTweaks() {
+  const context = React.useContext(TweaksContext);
+  if (!context) throw new Error('useTweaks must be used within a TweaksProvider');
+  return [context.values, context.setTweak];
+}
+
+function TweaksProvider({ children, defaults = {} }) {
+  const [values, setValues] = React.useState({
+    sidebarCollapsed: false,
+    ...defaults
+  });
+
   const setTweak = React.useCallback((keyOrEdits, val) => {
     const edits = typeof keyOrEdits === 'object' && keyOrEdits !== null
       ? keyOrEdits : { [keyOrEdits]: val };
@@ -123,7 +135,12 @@ function useTweaks(defaults) {
     window.parent.postMessage({ type: '__edit_mode_set_keys', edits }, '*');
     window.dispatchEvent(new CustomEvent('tweakchange', { detail: edits }));
   }, []);
-  return [values, setTweak];
+
+  return (
+    <TweaksContext.Provider value={{ values, setTweak }}>
+      {children}
+    </TweaksContext.Provider>
+  );
 }
 
 // ── TweaksPanel ─────────────────────────────────────────────────────────────
@@ -473,4 +490,4 @@ function TweakButton({ label, onClick, secondary = false }) {
   );
 }
 
-export { useTweaks, TweaksPanel, TweakSection, TweakRow, TweakSlider, TweakToggle, TweakRadio, TweakSelect, TweakText, TweakNumber, TweakColor, TweakButton };
+export { useTweaks, TweaksProvider, TweaksPanel, TweakSection, TweakRow, TweakSlider, TweakToggle, TweakRadio, TweakSelect, TweakText, TweakNumber, TweakColor, TweakButton };

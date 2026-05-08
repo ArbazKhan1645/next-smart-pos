@@ -31,14 +31,7 @@ export const DATA = {
     { id: 'L-005', merchantId: 'M-002', name: 'Chicago — West Loop', code: 'CHI-01', city: 'Chicago, IL', status: 'open', terminals: 5, staff: 16, sales: 22140, channels: ['Dine-in', 'Delivery', 'Drive-thru'], type: 'QSR', email: 'westloop@northwind.co', phone: '+1 312-555-0155', website: 'https://northwind.co/westloop', logo: '', address: '450 W Fulton Market, Chicago, IL 60661', country: 'United States' },
     { id: 'L-006', merchantId: 'M-002', name: 'Lincoln Park Retail', code: 'CHI-02', city: 'Chicago, IL', status: 'open', terminals: 3, staff: 7, sales: 8910, channels: ['In-store'], type: 'Retail', email: 'lincolnpark@northwind.co', phone: '+1 312-555-0166', website: 'https://northwind.co/lincolnpark', logo: '', address: '1347 N Halsted St, Chicago, IL 60642', country: 'United States' },
   ],
-  terminals: [
-    { id: 'T-1001', locationId: 'L-001', name: 'Front Counter A', loc: 'Flagship — SoHo', device: 'iPad Pro 12.9"', ip: '10.0.4.21', status: 'online', battery: 92, printer: 'EPSON-TM82-A' },
-    { id: 'T-1002', locationId: 'L-001', name: 'Front Counter B', loc: 'Flagship — SoHo', device: 'iPad Pro 12.9"', ip: '10.0.4.22', status: 'online', battery: 78, printer: 'EPSON-TM82-A' },
-    { id: 'T-1003', locationId: 'L-001', name: 'Bar Station', loc: 'Flagship — SoHo', device: 'iPad Air', ip: '10.0.4.23', status: 'syncing', battery: 64, printer: 'STAR-TSP143' },
-    { id: 'T-1004', locationId: 'L-005', name: 'Drive-thru', loc: 'Chicago — West Loop', device: 'Toast Go 2', ip: '10.2.1.14', status: 'online', battery: 88, printer: 'EPSON-TM82-CHI' },
-    { id: 'T-1006', locationId: 'L-002', name: 'Counter 1', loc: 'Brooklyn Heights', device: 'Square Register', ip: '10.0.5.10', status: 'online', battery: null, printer: 'STAR-TSP100' },
-    { id: 'T-1007', locationId: 'L-004', name: 'Mobile POS 1', loc: 'Boston Seaport', device: 'Toast Go 2', ip: '10.1.2.18', status: 'online', battery: 71, printer: 'BIXOLON-SPP' },
-  ],
+
   products: [
     { id: 'P-1024', sku: 'BRG-CLS-001', name: 'Northwind Classic Burger', category: 'Burgers', price: 14.50, cost: 4.20, stock: 142, status: 'active', channels: ['Dine-in', 'Delivery', 'QR'], modifiers: 4, type: 'Restaurant' },
     { id: 'P-1025', sku: 'BRG-VEG-002', name: 'Smashed Mushroom Burger', category: 'Burgers', price: 13.00, cost: 3.80, stock: 88, status: 'active', channels: ['Dine-in', 'Delivery'], modifiers: 4, type: 'Restaurant' },
@@ -76,14 +69,14 @@ export const DATA = {
     { id: 'S-010', name: 'Theo Becker', email: 'theo@northwind.co', role: 'Support', loc: 'HQ', status: 'active', clockedIn: false, lastSale: null },
   ],
   terminals: [
-    { id: 'T-1001', name: 'Front Counter A', loc: 'Flagship — SoHo', device: 'iPad Pro 12.9"', ip: '10.0.4.21', status: 'online', battery: 92, printer: 'EPSON-TM82-A' },
-    { id: 'T-1002', name: 'Front Counter B', loc: 'Flagship — SoHo', device: 'iPad Pro 12.9"', ip: '10.0.4.22', status: 'online', battery: 78, printer: 'EPSON-TM82-A' },
-    { id: 'T-1003', name: 'Bar Station', loc: 'Flagship — SoHo', device: 'iPad Air', ip: '10.0.4.23', status: 'syncing', battery: 64, printer: 'STAR-TSP143' },
-    { id: 'T-1004', name: 'Drive-thru', loc: 'Chicago — West Loop', device: 'Toast Go 2', ip: '10.2.1.14', status: 'online', battery: 88, printer: 'EPSON-TM82-CHI' },
-    { id: 'T-1005', name: 'Patio Tablet', loc: 'Miami Wynwood', device: 'iPad Mini', ip: '10.5.1.07', status: 'offline', battery: 12, printer: '—' },
-    { id: 'T-1006', name: 'Counter 1', loc: 'Brooklyn Heights', device: 'Square Register', ip: '10.0.5.10', status: 'online', battery: null, printer: 'STAR-TSP100' },
-    { id: 'T-1007', name: 'Mobile POS 1', loc: 'Boston Seaport', device: 'Toast Go 2', ip: '10.1.2.18', status: 'online', battery: 71, printer: 'BIXOLON-SPP' },
-    { id: 'T-1008', name: 'Retail Counter', loc: 'Lincoln Park Retail', device: 'iPad Pro', ip: '10.2.3.09', status: 'online', battery: 95, printer: 'EPSON-TM30' },
+    { id: 'T-1001', locationId: 'L-001', name: 'Front Counter A', loc: 'Flagship — SoHo', device: 'iPad Pro 12.9"', ip: '10.0.4.21', status: 'online', battery: 92, printer: 'EPSON-TM82-A' },
+    { id: 'T-1002', locationId: 'L-001', name: 'Front Counter B', loc: 'Flagship — SoHo', device: 'iPad Pro 12.9"', ip: '10.0.4.22', status: 'online', battery: 78, printer: 'EPSON-TM82-A' },
+    { id: 'T-1003', locationId: 'L-001', name: 'Bar Station', loc: 'Flagship — SoHo', device: 'iPad Air', ip: '10.0.4.23', status: 'syncing', battery: 64, printer: 'STAR-TSP143' },
+    { id: 'T-1004', locationId: 'L-005', name: 'Drive-thru', loc: 'Chicago — West Loop', device: 'Toast Go 2', ip: '10.2.1.14', status: 'online', battery: 88, printer: 'EPSON-TM82-CHI' },
+    { id: 'T-1005', locationId: null, name: 'Patio Tablet', loc: 'Miami Wynwood', device: 'iPad Mini', ip: '10.5.1.07', status: 'offline', battery: 12, printer: '—' },
+    { id: 'T-1006', locationId: 'L-002', name: 'Counter 1', loc: 'Brooklyn Heights', device: 'Square Register', ip: '10.0.5.10', status: 'online', battery: null, printer: 'STAR-TSP100' },
+    { id: 'T-1007', locationId: 'L-004', name: 'Mobile POS 1', loc: 'Boston Seaport', device: 'Toast Go 2', ip: '10.1.2.18', status: 'online', battery: 71, printer: 'BIXOLON-SPP' },
+    { id: 'T-1008', locationId: 'L-006', name: 'Retail Counter', loc: 'Lincoln Park Retail', device: 'iPad Pro', ip: '10.2.3.09', status: 'online', battery: 95, printer: 'EPSON-TM30' },
   ],
   liveOrders: [
     { id: '#10394', table: 'T-12', items: 4, total: 64.50, channel: 'Dine-in', status: 'preparing', placed: '2m', staff: 'Sara' },
